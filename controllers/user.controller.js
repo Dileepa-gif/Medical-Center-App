@@ -95,7 +95,7 @@ exports.loginUser = async function (req, res) {
     if (!user)
       return res
         .status(200)
-        .json({ code: 200, success: false, message: "Invalid Email" });
+        .json({ code: 200, success: false, message: "User not found" });
 
     const validPassword = await bcrypt.compare(
       req.body.password,
@@ -150,7 +150,7 @@ exports.compleatOwnerRegistration = async function (req, res) {
       medical_center : medical_center,
       message: "Owner registration is completed",
     });
-  } catch (err) {
+  } catch (error) {
     res
       .status(500)
       .json({ code: 500, success: false, message: "Internal Server Error" });
@@ -158,7 +158,7 @@ exports.compleatOwnerRegistration = async function (req, res) {
 };
 
 
-exports.getUserId = async function (req, res) {
+exports.getUserById = async function (req, res) {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id))
     return res.status(200).json({
@@ -178,7 +178,6 @@ exports.getUserId = async function (req, res) {
       return res.status(200).json({
         code: 200,
         success: true,
-        message: `User with this id is received`,
         data: user,
       });
     }
@@ -196,12 +195,13 @@ exports.getAllUsers = async function (req, res) {
         code: 200,
         success: true,
         data: data,
-        message: "Users are received",
       });
     })
-    .catch((err) => {
+    .catch((error) => {
       res.status(500).send({
-        message: err.message || "Some error occurred while retrieving User.",
+        code: 500,
+        success: false,
+        message: "Internal Server Error",
       });
     });
 };
@@ -265,5 +265,37 @@ exports.resetForgotPassword = async function (req, res) {
   }
 };
 
+
+exports.resetPassword = async function (req, res) {
+  try {
+    const user = await User.findById(req.jwt.sub.id).select("+password");
+    if (!user) {
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: "User not found" });
+    }
+    const validPassword = await bcrypt.compare(
+      req.body.old_password,
+      user.password
+    );
+
+    if (!validPassword)
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: "Invalid Old Password" });
+
+    user.password= req.body.new_password;
+    await user.save();
+    res.status(200).json({
+      code: 200,
+      success: true,
+      data: "Password reset successfully",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ code: 500, success: false, message: "Internal Server Error" });
+  }
+};
 
 
