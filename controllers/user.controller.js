@@ -95,7 +95,7 @@ exports.loginUser = async function (req, res) {
     if (!user)
       return res
         .status(200)
-        .json({ code: 200, success: false, message: "Invalid Email" });
+        .json({ code: 200, success: false, message: "User not found" });
 
     const validPassword = await bcrypt.compare(
       req.body.password,
@@ -265,5 +265,37 @@ exports.resetForgotPassword = async function (req, res) {
   }
 };
 
+
+exports.resetPassword = async function (req, res) {
+  try {
+    const user = await User.findById(req.jwt.sub.id).select("+password");
+    if (!user) {
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: "User not found" });
+    }
+    const validPassword = await bcrypt.compare(
+      req.body.old_password,
+      user.password
+    );
+
+    if (!validPassword)
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: "Invalid Old Password" });
+
+    user.password= req.body.new_password;
+    await user.save();
+    res.status(200).json({
+      code: 200,
+      success: true,
+      data: "Password reset successfully",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ code: 500, success: false, message: "Internal Server Error" });
+  }
+};
 
 

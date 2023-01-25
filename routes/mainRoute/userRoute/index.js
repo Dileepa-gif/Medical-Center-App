@@ -9,6 +9,7 @@ routes.post("/compleatOwnerRegistration", auth.authMiddleware(["OWNER"]), UserCo
 routes.post("/loginUser", UserController.loginUser);
 routes.post("/forgotPassword", UserController.forgotPassword);
 routes.post("/resetForgotPassword", UserController.resetForgotPassword);
+routes.post("/resetPassword",auth.authMiddleware(["OWNER"]), UserController.resetPassword);
 
 
 routes.get("/getUserId/:id", UserController.getUserId);
