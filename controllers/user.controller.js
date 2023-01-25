@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-const { ownerVerificationPinSender } = require("../utils/emailService");
+const { ownerVerificationPinSender, sendForgotEmail } = require("../utils/emailService");
 
 const userRole = require("../utils/userRoles");
 const auth = require("../utils/auth");
@@ -207,94 +207,63 @@ exports.getAllUsers = async function (req, res) {
 };
 
 
-// exports.forgotPassword = async function (req, res, next) {
-//   const { email } = req.body;
-//   try {
-//     const user = await User.findOne({ email });
-//     if (!user) {
-//       return res
-//         .status(200)
-//         .json({ code: 200, success: false, message: "User not found" });
-//     }
+exports.forgotPassword = async function (req, res, next) {
+  
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: "User not found" });
+    }
 
-//     const token = utils.generateAuthToken(user);
+    const pin = Math.floor(Math.random() * (9999 - 1000) + 1000);
+    user.password_reset_pin = pin;
+    await user.save();
+    sendForgotEmail(user, pin);
+    res.status(200).json({
+      code: 200,
+      success: true,
+      user:user,
+      data: "Please check your email to reset password.",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ code: 500, success: false, message: "Internal Server Error" });
+  }
+};
 
-//     sendForgotEmail(token.token, user);
-//     res.status(200).json({
-//       code: 200,
-//       success: true,
-//       data: "Please check your email to reset password.",
-//     });
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ code: 500, success: false, message: "Internal Server Error" });
-//   }
-// };
+exports.resetForgotPassword = async function (req, res) {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: "User not found" });
+    }
 
-// exports.resetPassword = async function (req, res) {
-//   try {
-//     if (req.query.token) {
-//       const tokenParts = req.query.token.split(" ");
-
-//       if (
-//         tokenParts[0] === "Bearer" &&
-//         tokenParts[1].match(/\S+\.\S+\.\S+/) !== null
-//       ) {
-//         try {
-//           const verification = jwt.verify(
-//             tokenParts[1],
-//             process.env.ACCESS_TOKEN_SECRET
-//           );
-//           const user = await User.findOne({ email: verification.sub.email });
-//           if (!user) {
-//             return res.status(200).json({
-//               code: 200,
-//               success: false,
-//               status: "Unauthorized",
-//               msg: "Token is invalid. Please contact Administrator",
-//             });
-//           }
-//           user.password = req.body.password;
-//           await user.save();
-//           const token = utils.generateAuthToken(user);
-//           res.status(200).json({
-//             code: 200,
-//             success: true,
-//             data: user,
-//             token: token,
-//             message: "Password reset successfully",
-//           });
-//         } catch (err) {
-//           res.status(200).json({
-//             code: 200,
-//             success: false,
-//             status: "Unauthorized1",
-//             msg: "Can't reset your password. Please contact Administrator",
-//           });
-//         }
-//       } else {
-//         res.status(200).json({
-//           code: 200,
-//           success: false,
-//           status: "Unauthorized2",
-//           msg: "Can't reset your password. Please contact Administrator",
-//         });
-//       }
-//     } else {
-//       res.status(200).json({
-//         code: 200,
-//         success: false,
-//         status: "TokenError",
-//         msg: "Can't reset your password. Please contact Administrator",
-//       });
-//     }
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ code: 500, success: false, message: "Internal Server Error" });
-//   }
-// };
+    if (req.body.password_reset_pin != user.password_reset_pin) {
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: "Wrong PIN number" });
+    }
+    user.password= req.body.password;
+    await user.save();
+    const token = auth.issueJWT(user);
+    res.status(200).json({
+      code: 200,
+      success: true,
+      token: token,
+      data: "Password reset successfully",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ code: 500, success: false, message: "Internal Server Error" });
+  }
+};
 
 
 

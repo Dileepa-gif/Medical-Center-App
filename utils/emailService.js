@@ -35,6 +35,28 @@ exports.ownerVerificationPinSender = async function (user) {
     });
 };
 
+exports.sendForgotEmail = async function (user, pin) {
+  transport
+    .sendMail({
+      from: senderEmail,
+      to: user.email,
+      subject: "Please use this pin number to reset your password",
+      html: `<h1><b>Please use this PIN number to reset your password</b></h1>
+
+                <h5>Let's use this PIN number to reset your password</h5><br>
+                <p><b>Email : </b>${user.email}</p>
+                <p><b>PIN : </b>${pin}</p><br>`,
+    })
+    .then(() => {
+      console.log("Email Sent to " + user.email + " to reset customer password.");
+    })
+    .catch(() => {
+      console.log(
+        "Email Not Sent to " + user.email + " to reset customer password."
+      );
+    });
+};
+
 
 
 // exports.employeePasswordSender = async function (user,randomPassword) {
