@@ -12,7 +12,7 @@ routes.post("/resetForgotPassword", UserController.resetForgotPassword);
 routes.post("/resetPassword",auth.authMiddleware(["OWNER"]), UserController.resetPassword);
 
 
-routes.get("/getUserId/:id", UserController.getUserId);
+routes.get("/getUserById/:id", UserController.getUserById);
 routes.get("/getAllUsers", UserController.getAllUsers);
 
 module.exports = routes;

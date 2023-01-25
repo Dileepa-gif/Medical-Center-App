@@ -28,9 +28,9 @@ var medicalCenterSchema = new Schema({
   },
   user_id: {
     type: Schema.Types.ObjectId,
-    ref: 'user'
+    ref: 'users'
   },
 });
 
-const MedicalCenter = mongoose.model("medicalCenter", medicalCenterSchema);
+const MedicalCenter = mongoose.model("MedicalCenter", medicalCenterSchema);
 module.exports = MedicalCenter;

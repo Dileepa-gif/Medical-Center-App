@@ -41,7 +41,7 @@ const userSchema = new Schema({
     },
     medical_center_id: {
         type: Schema.Types.ObjectId,
-        ref: 'medicalCenter'
+        ref: 'medicalcenters'
       },
 });
 
@@ -57,6 +57,6 @@ userSchema.pre("save", async function (next) {
 });
 
 
-const User = mongoose.model("user", userSchema);
+const User = mongoose.model("User", userSchema);
 
 module.exports = User; 
