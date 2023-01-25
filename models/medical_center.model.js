@@ -16,18 +16,15 @@ var medicalCenterSchema = new Schema({
   },
   it_service_charge: {
     type: Number,
-    required: true,
     default: 0,
   },
   service_charge: {
     type: Number,
-    required: true,
     default: 0,
   },
   is_activated: {
     type: Boolean,
-    required: true,
-    default: true,
+    default: false,
   },
   user_id: {
     type: Schema.Types.ObjectId,
