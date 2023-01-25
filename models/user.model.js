@@ -32,6 +32,9 @@ const userSchema = new Schema({
         type: Boolean,
         default: false
     },
+    password_reset_pin: {
+        type: String
+    },
     doctor_charge: {
         type: Number,
         default: 0,

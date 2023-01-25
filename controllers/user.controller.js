@@ -1,4 +1,5 @@
 const User = require("../models/user.model");
+const MedicalCenter = require("../models/medical_center.model");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -49,7 +50,7 @@ exports.verifyOwner = async function (req, res) {
   try {
     const body = req.body;
 
-    const owner = await User.findById(req.params.id)
+    const owner = await User.findById(req.jwt.sub.id)
     if (!owner)
       return res
         .status(200)
@@ -127,19 +128,26 @@ exports.loginUser = async function (req, res) {
 
 exports.compleatOwnerRegistration = async function (req, res) {
   try {
-    var user = await User.findById(req.params.id);
-
-    const data = {
+    var user = {
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       phone_number: req.body.phone_number,
     };
 
-    user = await User.findByIdAndUpdate(req.params.id, data, { new: true });
+    user = await User.findByIdAndUpdate(req.jwt.sub.id, user, { new: true });
+
+    var medical_center = new MedicalCenter({
+      name : req.body.name,
+      address : req.body.address,
+      user_id : "63cf61336423df0fefaaff87",
+      registration_number : req.body.registration_number
+    });
+    var medical_center = await medical_center.save();
     res.status(200).json({
       code: 200,
       success: true,
-      data: user,
+      user: user,
+      medical_center : medical_center,
       message: "Owner registration is completed",
     });
   } catch (err) {
@@ -152,6 +160,13 @@ exports.compleatOwnerRegistration = async function (req, res) {
 
 exports.getUserId = async function (req, res) {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+    return res.status(200).json({
+      code: 200,
+      success: false,
+      message: `Id is not valid`,
+    });
+
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(200).json({
