@@ -26,10 +26,12 @@ var medicalCenterSchema = new Schema({
     type: Boolean,
     default: false,
   },
-  user_id: {
-    type: Schema.Types.ObjectId,
-    ref: 'users'
-  },
+  user_id: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "users",
+    },
+  ],
 });
 
 const MedicalCenter = mongoose.model("MedicalCenter", medicalCenterSchema);

@@ -27,6 +27,9 @@ exports.getMedicalCenterById = async function (req, res) {
           },
         },
         {
+          $match: { "owner_details.role": "OWNER" },
+        },
+        {
           $match: { _id: mongoose.Types.ObjectId(req.params.id) },
         },
       ]).exec(function (err, data) {
@@ -39,13 +42,11 @@ exports.getMedicalCenterById = async function (req, res) {
         return res.status(200).json({ code: 200, status: true, data: data });
       });
     } else {
-      return res
-        .status(200)
-        .json({
-          code: 200,
-          success: false,
-          message: "No medical center  found",
-        });
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: "No medical center  found",
+      });
     }
   } catch (error) {
     res
@@ -64,7 +65,10 @@ exports.getAllMedicalCenters = async function (req, res) {
           foreignField: "_id",
           as: "owner_details",
         },
-      }
+      },
+      {
+        $match: { "owner_details.role": "OWNER" },
+      },
     ]).exec(function (err, medical_centers) {
       if (err) {
         return res
@@ -72,7 +76,9 @@ exports.getAllMedicalCenters = async function (req, res) {
           .json({ code: 200, status: false, message: "Invalid Request!" });
       }
 
-      return res.status(200).json({ code: 200, status: true, data: medical_centers });
+      return res
+        .status(200)
+        .json({ code: 200, status: true, data: medical_centers });
     });
   } catch (err) {
     res
@@ -80,4 +86,3 @@ exports.getAllMedicalCenters = async function (req, res) {
       .json({ code: 500, success: false, message: "Internal Server Error" });
   }
 };
-
