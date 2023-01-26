@@ -7,11 +7,12 @@ function issueJWT(user) {
 
   const payload = {
     sub: {
-      id: user.id,
+      _id: user._id,
       email: user.email,
       is_completed: user.is_completed,
       role : user.role,
-      is_verified : user.is_verified
+      is_verified : user.is_verified,
+      medical_center_id : user.medical_center_id || null
     },
     iat: Date.now()
   };
@@ -21,12 +22,13 @@ function issueJWT(user) {
     token: "Bearer " + signedToken,
     expires: expiresIn,
     sub: {
-      id: user.id,
+      _id: user._id,
       first_name: user.first_name,
       last_name: user.last_name,
       email: user.email,
       is_verified : user.is_verified,
-      role : user.role
+      role : user.role,
+      medical_center_id : user.medical_center_id || null
     }
   }
 }
