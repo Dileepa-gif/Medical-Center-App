@@ -62,7 +62,7 @@ exports.getAllMedicalCenters = async function (req, res) {
           from: "users",
           localField: "user_id",
           foreignField: "_id",
-          as: "userDetails",
+          as: "owner_details",
         },
       }
     ]).exec(function (err, medical_centers) {

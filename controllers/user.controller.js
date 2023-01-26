@@ -1,10 +1,13 @@
 const User = require("../models/user.model");
 const MedicalCenter = require("../models/medical_center.model");
 const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-const { ownerVerificationPinSender, sendForgotEmail } = require("../utils/emailService");
+const {
+  ownerVerificationPinSender,
+  sendForgotEmail,
+  employeePasswordSender
+} = require("../utils/emailService");
 
 const userRole = require("../utils/userRoles");
 const auth = require("../utils/auth");
@@ -12,8 +15,6 @@ const auth = require("../utils/auth");
 //owner
 exports.createOwner = async function (req, res) {
   try {
-    const body = req.body;
-
     const emailExist = await User.findOne({ email: req.body.email });
     if (emailExist)
       return res
@@ -23,7 +24,7 @@ exports.createOwner = async function (req, res) {
     const user = new User({
       email: req.body.email,
       password: req.body.password,
-      is_verified:false,
+      is_verified: false,
       verification_pin: Math.floor(Math.random() * (9999 - 1000) + 1000),
       role: userRole.OWNER,
     });
@@ -31,7 +32,7 @@ exports.createOwner = async function (req, res) {
     var owner = await user.save();
     ownerVerificationPinSender(owner);
     const token = auth.issueJWT(owner);
-    
+
     res.status(200).json({
       code: 200,
       success: true,
@@ -50,30 +51,42 @@ exports.verifyOwner = async function (req, res) {
   try {
     const body = req.body;
 
-    const owner = await User.findById(req.jwt.sub.id)
+    const owner = await User.findById(req.jwt.sub._id);
     if (!owner)
       return res
         .status(200)
-        .json({ code: 200, success: true, message: "This account dose not exists" });
+        .json({
+          code: 200,
+          success: true,
+          message: "This account dose not exists",
+        });
     if (owner.verification_pin != req.body.verification_pin)
       return res
         .status(200)
-        .json({ code: 200, success: true, message: "This verification pin is not valid" });
-    
+        .json({
+          code: 200,
+          success: true,
+          message: "This verification pin is not valid",
+        });
+
     if (owner.is_verified == true)
       return res
         .status(200)
-        .json({ code: 200, success: true, message: "This account's PIN already entered"});
+        .json({
+          code: 200,
+          success: true,
+          message: "This account's PIN already entered",
+        });
 
     owner.is_verified = true;
 
     await owner.save();
     const token = auth.issueJWT(owner);
-    
+
     res.status(200).json({
       code: 200,
       success: true,
-      owner : owner,
+      owner: owner,
       token: token,
       message: "Registered in successfully",
     });
@@ -83,9 +96,6 @@ exports.verifyOwner = async function (req, res) {
       .json({ code: 500, success: false, message: "Internal Server Error" });
   }
 };
-
-
-
 
 exports.loginUser = async function (req, res) {
   try {
@@ -106,12 +116,17 @@ exports.loginUser = async function (req, res) {
       return res
         .status(200)
         .json({ code: 200, success: false, message: "Invalid Password" });
-    
+
     const token = auth.issueJWT(user);
     if (user.is_verified == false)
-    return res
-      .status(200)
-      .json({ code: 200, success: true, token: token, message: "This account not verified. Please check your email."});
+      return res
+        .status(200)
+        .json({
+          code: 200,
+          success: true,
+          token: token,
+          message: "This account not verified. Please check your email.",
+        });
     res.status(200).json({
       code: 200,
       success: true,
@@ -125,29 +140,29 @@ exports.loginUser = async function (req, res) {
   }
 };
 
-
 exports.compleatOwnerRegistration = async function (req, res) {
   try {
+    var medical_center = new MedicalCenter({
+      name: req.body.name,
+      address: req.body.address,
+      user_id: req.jwt.sub._id,
+      registration_number: req.body.registration_number,
+    });
+    var medical_center = await medical_center.save();
     var user = {
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       phone_number: req.body.phone_number,
+      medical_center_id: medical_center.id,
     };
-
-    user = await User.findByIdAndUpdate(req.jwt.sub.id, user, { new: true });
-
-    var medical_center = new MedicalCenter({
-      name : req.body.name,
-      address : req.body.address,
-      user_id : "63cf61336423df0fefaaff87",
-      registration_number : req.body.registration_number
-    });
-    var medical_center = await medical_center.save();
+    user = await User.findByIdAndUpdate(req.jwt.sub._id, user, { new: true });
+    const token = auth.issueJWT(user);
     res.status(200).json({
       code: 200,
       success: true,
       user: user,
-      medical_center : medical_center,
+      token: token,
+      medical_center: medical_center,
       message: "Owner registration is completed",
     });
   } catch (error) {
@@ -157,15 +172,14 @@ exports.compleatOwnerRegistration = async function (req, res) {
   }
 };
 
-
 exports.getUserById = async function (req, res) {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id))
-    return res.status(200).json({
-      code: 200,
-      success: false,
-      message: `Id is not valid`,
-    });
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `Id is not valid`,
+      });
 
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -206,9 +220,7 @@ exports.getAllUsers = async function (req, res) {
     });
 };
 
-
 exports.forgotPassword = async function (req, res, next) {
-  
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
@@ -225,7 +237,7 @@ exports.forgotPassword = async function (req, res, next) {
     res.status(200).json({
       code: 200,
       success: true,
-      user:user,
+      user: user,
       data: "Please check your email to reset password.",
     });
   } catch (error) {
@@ -249,7 +261,7 @@ exports.resetForgotPassword = async function (req, res) {
         .status(200)
         .json({ code: 200, success: false, message: "Wrong PIN number" });
     }
-    user.password= req.body.password;
+    user.password = req.body.password;
     await user.save();
     const token = auth.issueJWT(user);
     res.status(200).json({
@@ -265,10 +277,9 @@ exports.resetForgotPassword = async function (req, res) {
   }
 };
 
-
 exports.resetPassword = async function (req, res) {
   try {
-    const user = await User.findById(req.jwt.sub.id).select("+password");
+    const user = await User.findById(req.jwt.sub._id).select("+password");
     if (!user) {
       return res
         .status(200)
@@ -284,7 +295,7 @@ exports.resetPassword = async function (req, res) {
         .status(200)
         .json({ code: 200, success: false, message: "Invalid Old Password" });
 
-    user.password= req.body.new_password;
+    user.password = req.body.new_password;
     await user.save();
     res.status(200).json({
       code: 200,
@@ -298,4 +309,58 @@ exports.resetPassword = async function (req, res) {
   }
 };
 
+exports.addEmployee = async function (req, res) {
+  try {
+    if (req.jwt.sub.medical_center_id == null) {
+      return res
+        .status(200)
+        .json({
+          code: 200,
+          success: false,
+          message:
+            "Currently, You have not a medical center. Please complete your details.",
+        });
+    }
+    const medical_center = await MedicalCenter.findById(req.jwt.sub.medical_center_id);
+    if (!medical_center) {
+      return res
+        .status(200)
+        .json({
+          code: 200,
+          success: false,
+          message: "Medical center not found",
+        });
+    }
 
+    const emailExist = await User.findOne({ email: req.body.email });
+    if (emailExist)
+      return res
+        .status(200)
+        .json({ code: 200, success: true, message: "Email already available" });
+    var random_password =  Math.random().toString(36).slice(-8);
+    const user = new User({
+      email: req.body.email,
+      password: random_password,
+      is_verified: true,
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      phone_number: req.body.phone_number,
+      medical_center_id: req.jwt.sub.medical_center_id,
+      role: req.body.role.toUpperCase()
+    });
+
+    await user.save();
+    employeePasswordSender(user, random_password);
+
+
+    res.status(200).json({
+      code: 200,
+      success: true,
+      message: "Employee added successfully",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ code: 500, success: false, message: "Internal Server Error" });
+  }
+};

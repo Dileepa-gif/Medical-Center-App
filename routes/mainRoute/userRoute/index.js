@@ -11,7 +11,7 @@ routes.post("/forgotPassword", UserController.forgotPassword);
 routes.post("/resetForgotPassword", UserController.resetForgotPassword);
 routes.post("/resetPassword",auth.authMiddleware(["OWNER"]), UserController.resetPassword);
 
-
+routes.post("/addEmployee",auth.authMiddleware(["OWNER"]), UserController.addEmployee);
 routes.get("/getUserById/:id", UserController.getUserById);
 routes.get("/getAllUsers", UserController.getAllUsers);
 
