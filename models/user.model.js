@@ -39,6 +39,10 @@ const userSchema = new Schema({
         type: Number,
         default: 0,
     },
+    is_completed: {
+        type: Boolean,
+        default: false
+    },
     medical_center_id: {
         type: Schema.Types.ObjectId,
         ref: 'medicalcenters'

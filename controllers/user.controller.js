@@ -19,7 +19,7 @@ exports.createOwner = async function (req, res) {
     if (emailExist)
       return res
         .status(200)
-        .json({ code: 200, success: true, message: "Email already available" });
+        .json({ code: 200, success: false, message: "Email already available" });
 
     const user = new User({
       email: req.body.email,
@@ -57,7 +57,7 @@ exports.verifyOwner = async function (req, res) {
         .status(200)
         .json({
           code: 200,
-          success: true,
+          success: false,
           message: "This account dose not exists",
         });
     if (owner.verification_pin != req.body.verification_pin)
@@ -65,7 +65,7 @@ exports.verifyOwner = async function (req, res) {
         .status(200)
         .json({
           code: 200,
-          success: true,
+          success: false,
           message: "This verification pin is not valid",
         });
 
@@ -74,7 +74,7 @@ exports.verifyOwner = async function (req, res) {
         .status(200)
         .json({
           code: 200,
-          success: true,
+          success: false,
           message: "This account's PIN already entered",
         });
 
@@ -123,7 +123,7 @@ exports.loginUser = async function (req, res) {
         .status(200)
         .json({
           code: 200,
-          success: true,
+          success: false,
           token: token,
           message: "This account not verified. Please check your email.",
         });
@@ -154,6 +154,7 @@ exports.compleatOwnerRegistration = async function (req, res) {
       last_name: req.body.last_name,
       phone_number: req.body.phone_number,
       medical_center_id: medical_center.id,
+      is_completed: true
     };
     user = await User.findByIdAndUpdate(req.jwt.sub._id, user, { new: true });
     const token = auth.issueJWT(user);
@@ -336,7 +337,7 @@ exports.addEmployee = async function (req, res) {
     if (emailExist)
       return res
         .status(200)
-        .json({ code: 200, success: true, message: "Email already available" });
+        .json({ code: 200, success: false, message: "Email already available" });
     var random_password =  Math.random().toString(36).slice(-8);
     const user = new User({
       email: req.body.email,
