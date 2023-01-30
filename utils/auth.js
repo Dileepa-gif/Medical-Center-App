@@ -3,7 +3,7 @@ const jsonwebtoken = require('jsonwebtoken');
 
   
 function issueJWT(user) {
-  const expiresIn = '2w';
+  const expiresIn = '4w';
 
   const payload = {
     sub: {
@@ -12,10 +12,12 @@ function issueJWT(user) {
       is_completed: user.is_completed,
       role : user.role,
       is_verified : user.is_verified,
+      is_completed : user.is_completed,
       medical_center_id : user.medical_center_id || null
     },
-    iat: Date.now()
+    iat: Date.now()/1000
   };
+
   const signedToken = jsonwebtoken.sign( payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: expiresIn});
 
   return {
@@ -27,6 +29,7 @@ function issueJWT(user) {
       last_name: user.last_name,
       email: user.email,
       is_verified : user.is_verified,
+      is_completed : user.is_completed,
       role : user.role,
       medical_center_id : user.medical_center_id || null
     }
@@ -59,7 +62,7 @@ const authMiddleware = (role_arr) => {
           }
   
         } catch (err) {
-          res.status(200).json({ code :200, success: false, message: "You must login to visit this route" });
+          res.status(200).json({ code :200, success: false, message: "Your login is expired. Please login again" });
         }
   
       } else {

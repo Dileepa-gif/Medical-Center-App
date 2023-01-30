@@ -6,7 +6,7 @@ const bcrypt = require("bcrypt");
 const {
   ownerVerificationPinSender,
   sendForgotEmail,
-  employeePasswordSender
+  employeePasswordSender,
 } = require("../utils/emailService");
 
 const userRole = require("../utils/userRoles");
@@ -19,7 +19,11 @@ exports.createOwner = async function (req, res) {
     if (emailExist)
       return res
         .status(200)
-        .json({ code: 200, success: false, message: "Email already available" });
+        .json({
+          code: 200,
+          success: false,
+          message: "Email already available",
+        });
 
     const user = new User({
       email: req.body.email,
@@ -53,30 +57,24 @@ exports.verifyOwner = async function (req, res) {
 
     const owner = await User.findById(req.jwt.sub._id);
     if (!owner)
-      return res
-        .status(200)
-        .json({
-          code: 200,
-          success: false,
-          message: "This account dose not exists",
-        });
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: "This account dose not exists",
+      });
     if (owner.verification_pin != req.body.verification_pin)
-      return res
-        .status(200)
-        .json({
-          code: 200,
-          success: false,
-          message: "This verification pin is not valid",
-        });
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: "This verification pin is not valid",
+      });
 
     if (owner.is_verified == true)
-      return res
-        .status(200)
-        .json({
-          code: 200,
-          success: false,
-          message: "This account's PIN already entered",
-        });
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: "This account's PIN already entered",
+      });
 
     owner.is_verified = true;
 
@@ -119,20 +117,48 @@ exports.loginUser = async function (req, res) {
 
     const token = auth.issueJWT(user);
     if (user.is_verified == false)
-      return res
-        .status(200)
-        .json({
-          code: 200,
-          success: false,
-          token: token,
-          message: "This account not verified. Please check your email.",
-        });
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        token: token,
+        message: "This account not verified. Please check your email.",
+      });
     res.status(200).json({
       code: 200,
       success: true,
       token: token,
       message: "logged in successfully",
     });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ code: 500, success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.validateToken = async function (req, res) {
+  try {
+    const user = await User.findById(req.jwt.sub._id);
+    if (!user) {
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No valid user with this id`,
+      });
+    }
+    if (req.jwt.exp > Date.now() / 1000) {
+      return res.status(200).json({
+        code: 200,
+        success: true,
+        message: `JWT token is not expired`,
+      });
+    } else {
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `Your login is expired. Please login again`,
+      });
+    }
   } catch (error) {
     res
       .status(500)
@@ -154,7 +180,7 @@ exports.compleatOwnerRegistration = async function (req, res) {
       last_name: req.body.last_name,
       phone_number: req.body.phone_number,
       medical_center_id: medical_center.id,
-      is_completed: true
+      is_completed: true,
     };
     user = await User.findByIdAndUpdate(req.jwt.sub._id, user, { new: true });
     const token = auth.issueJWT(user);
@@ -313,32 +339,34 @@ exports.resetPassword = async function (req, res) {
 exports.addEmployee = async function (req, res) {
   try {
     if (req.jwt.sub.medical_center_id == null) {
-      return res
-        .status(200)
-        .json({
-          code: 200,
-          success: false,
-          message:
-            "Currently, You have not a medical center. Please complete your details.",
-        });
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message:
+          "Currently, You have not a medical center. Please complete your details.",
+      });
     }
-    const medical_center = await MedicalCenter.findById(req.jwt.sub.medical_center_id);
+    const medical_center = await MedicalCenter.findById(
+      req.jwt.sub.medical_center_id
+    );
     if (!medical_center) {
-      return res
-        .status(200)
-        .json({
-          code: 200,
-          success: false,
-          message: "Medical center not found",
-        });
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: "Medical center not found",
+      });
     }
 
     const emailExist = await User.findOne({ email: req.body.email });
     if (emailExist)
       return res
         .status(200)
-        .json({ code: 200, success: false, message: "Email already available" });
-    var random_password =  Math.random().toString(36).slice(-8);
+        .json({
+          code: 200,
+          success: false,
+          message: "Email already available",
+        });
+    var random_password = Math.random().toString(36).slice(-8);
     const user = new User({
       email: req.body.email,
       password: random_password,
@@ -347,12 +375,12 @@ exports.addEmployee = async function (req, res) {
       last_name: req.body.last_name,
       phone_number: req.body.phone_number,
       medical_center_id: req.jwt.sub.medical_center_id,
-      role: req.body.role.toUpperCase()
+      role: req.body.role.toUpperCase(),
+      is_completed: true,
     });
 
     await user.save();
     employeePasswordSender(user, random_password);
-
 
     res.status(200).json({
       code: 200,

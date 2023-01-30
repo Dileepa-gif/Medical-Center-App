@@ -7,6 +7,7 @@ routes.post("/verifyOwner",auth.authMiddleware(["OWNER"]), UserController.verify
 routes.post("/compleatOwnerRegistration", auth.authMiddleware(["OWNER"]), UserController.compleatOwnerRegistration);
 
 routes.post("/loginUser", UserController.loginUser);
+routes.get("/validateToken",auth.authMiddleware(["OWNER"]), UserController.validateToken);
 routes.post("/forgotPassword", UserController.forgotPassword);
 routes.post("/resetForgotPassword", UserController.resetForgotPassword);
 routes.post("/resetPassword",auth.authMiddleware(["OWNER"]), UserController.resetPassword);
@@ -14,5 +15,7 @@ routes.post("/resetPassword",auth.authMiddleware(["OWNER"]), UserController.rese
 routes.post("/addEmployee",auth.authMiddleware(["OWNER"]), UserController.addEmployee);
 routes.get("/getUserById/:id", UserController.getUserById);
 routes.get("/getAllUsers", UserController.getAllUsers);
+
+
 
 module.exports = routes;
