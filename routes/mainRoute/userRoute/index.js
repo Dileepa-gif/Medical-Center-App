@@ -15,6 +15,8 @@ routes.post("/resetPassword",auth.authMiddleware(["OWNER"]), UserController.rese
 routes.post("/addEmployee",auth.authMiddleware(["OWNER"]), UserController.addEmployee);
 routes.get("/getUserById/:id", UserController.getUserById);
 routes.get("/getAllUsers", UserController.getAllUsers);
+routes.get("/getUsersByMedicalCenter", auth.authMiddleware(["OWNER"]), UserController.getUsersByMedicalCenter);
+
 routes.delete("/delete/:id", auth.authMiddleware(["OWNER"]), UserController.delete);
 
 

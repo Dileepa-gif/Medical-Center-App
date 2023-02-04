@@ -247,6 +247,29 @@ exports.getAllUsers = async function (req, res) {
     });
 };
 
+exports.getUsersByMedicalCenter = async function (req, res) {
+  try {
+    const users = await User.find({medical_center_id : req.jwt.sub.medical_center_id});
+    if (!users) {
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No valid users with this medical center`,
+      });
+    } else {
+      return res.status(200).json({
+        code: 200,
+        success: true,
+        data: users,
+      });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ code: 500, success: false, message: "Internal Server Error" });
+  }
+};
+
 exports.forgotPassword = async function (req, res, next) {
   try {
     const { email } = req.body;
