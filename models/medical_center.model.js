@@ -1,5 +1,6 @@
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
+const User = require("../models/user.model");
 
 var medicalCenterSchema = new Schema({
   name: {
@@ -33,6 +34,10 @@ var medicalCenterSchema = new Schema({
     },
   ],
 });
+
+
+
+
 
 const MedicalCenter = mongoose.model("MedicalCenter", medicalCenterSchema);
 module.exports = MedicalCenter;
