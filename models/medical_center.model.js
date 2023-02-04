@@ -35,9 +35,5 @@ var medicalCenterSchema = new Schema({
   ],
 });
 
-
-
-
-
 const MedicalCenter = mongoose.model("MedicalCenter", medicalCenterSchema);
 module.exports = MedicalCenter;

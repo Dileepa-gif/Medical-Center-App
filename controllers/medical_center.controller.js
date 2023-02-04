@@ -88,30 +88,3 @@ exports.getAllMedicalCenters = async function (req, res) {
 };
 
 
-exports.delete = function (req, res) {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id))
-    return res.status(200).json({
-      code: 200,
-      success: false,
-      message: `Id is not valid`,
-    });
-    MedicalCenter.deleteOne({ _id: req.params.id }, async function (err, medical_enter) {
-      if (err) {
-        res
-          .status(200)
-          .json({ code: 200, success: false, message: "Unable to delete!" });
-      }
-
-      res.status(200).json({
-        code: 200,
-        success: true,
-        message: "Medical center removed successfully!",
-      });
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
-  }
-};
