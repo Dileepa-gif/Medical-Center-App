@@ -5,5 +5,5 @@ const medicalCenterController = require("../../../controllers/medical_center.con
 
 routes.get("/getMedicalCenterById/:id", medicalCenterController.getMedicalCenterById);
 routes.get("/getAllMedicalCenters", medicalCenterController.getAllMedicalCenters);
-routes.delete("/delete/:id", auth.authMiddleware(["OWNER"]), medicalCenterController.delete);
+
 module.exports = routes;

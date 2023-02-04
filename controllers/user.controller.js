@@ -346,7 +346,7 @@ exports.addEmployee = async function (req, res) {
           "Currently, You have not a medical center. Please complete your details.",
       });
     }
-    const medical_center = await MedicalCenter.findById(
+    var medical_center = await MedicalCenter.findById(
       req.jwt.sub.medical_center_id
     );
     if (!medical_center) {
@@ -380,12 +380,43 @@ exports.addEmployee = async function (req, res) {
     });
 
     await user.save();
+    medical_center.user_id.push(user._id);
+    medical_center.save();
     employeePasswordSender(user, random_password);
 
     res.status(200).json({
       code: 200,
       success: true,
       message: "Employee added successfully",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ code: 500, success: false, message: "Internal Server Error" });
+  }
+};
+
+
+exports.delete = function (req, res) {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+    return res.status(200).json({
+      code: 200,
+      success: false,
+      message: `Id is not valid`,
+    });
+    User.findOneAndDelete({ _id: req.params.id }, function (err, user) {
+      if (err) {
+        res
+          .status(200)
+          .json({ code: 200, success: false, message: "Unable to delete!" });
+      }
+      
+      res.status(200).json({
+        code: 200,
+        success: true,
+        message: "User removed successfully!",
+      });
     });
   } catch (error) {
     res

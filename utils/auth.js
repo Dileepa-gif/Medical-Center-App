@@ -7,7 +7,7 @@ function issueJWT(user) {
 
   const payload = {
     sub: {
-      _id: user._id,
+      _id: user.id,
       email: user.email,
       is_completed: user.is_completed,
       role : user.role,
