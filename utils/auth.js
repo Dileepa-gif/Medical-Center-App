@@ -61,7 +61,7 @@ const authMiddleware = (role_arr) => {
             res.status(200).json({ code :200, success: false, message: "You are not" +  role_list});
           }
   
-        } catch (err) {
+        } catch (error) {
           res.status(200).json({ code :200, success: false, message: "Your login is expired. Please login again" });
         }
   

@@ -42,6 +42,6 @@ exports.login = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };

@@ -48,7 +48,7 @@ function authMiddleware(req, res, next) {
           req.jwt = verification;
         }
         next();
-      } catch (err) {
+      } catch (error) {
         res.status(401).json({ success: false, status: 'Unauthorized', msg: "You are not authorized to visit this route" });
       }
 
@@ -106,7 +106,7 @@ function adminAuthMiddleware(req, res, next) {
           res.status(210).json({ success: false, code:210, status: 'Unauthorized', msg: "You are not an admin" });
         }
 
-      } catch (err) {
+      } catch (error) {
         res.status(210).json({ success: false, code:210, status: 'Unauthorized', msg: "You are not authorized to visit this route" });
       }
 
