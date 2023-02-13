@@ -18,7 +18,7 @@ routes.get("/getAllUsers", UserController.getAllUsers);
 routes.get("/getUsersByMedicalCenter", auth.authMiddleware(["OWNER"]), UserController.getUsersByMedicalCenter);
 
 routes.put("/update/:id", UserController.update);
-routes.delete("/delete/:id", 63de4e1f88a381402a492edb UserController.delete);
+routes.delete("/delete/:id", UserController.delete);
 
 
 

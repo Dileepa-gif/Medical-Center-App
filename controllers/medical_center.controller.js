@@ -108,7 +108,7 @@ exports.update = async function (req, res) {
       name: req.body.name || medical_center.name,
       address: req.body.address || medical_center.address,
       registration_number: req.body.registration_number || medical_center.registration_number,
-      service_charge: req.body.phone_number || medical_center.service_charge
+      service_charge: req.body.service_charge || medical_center.service_charge
     };
       const updatedMedicalCenter = await MedicalCenter.findByIdAndUpdate(id, medical_center, {
         new: true,

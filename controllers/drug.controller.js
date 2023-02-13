@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 
 exports.create = async function (req, res) {
   try {
-    const drugExist = await Drug.findOne({ use_name: req.body.use_name } || { drug_name: req.body.drug_name });
+    const drugExist = await Drug.findOne({ $or:[ {use_name : req.body.use_name}, {drug_name : req.body.drug_name}], $and: [{medical_center_id: req.jwt.sub.medical_center_id}]});
     if (drugExist)
       return res
         .status(200)
@@ -107,8 +107,9 @@ exports.update = async function (req, res) {
         success: false,
         message: `No drug with id: ${id}`,
       });
-    let drug = await Drug.findOne($and[{id: id}, {medical_center_id : medical_center_id}]);
-    if (!drug) {
+  let drug = await Drug.findOne({_id: id});
+  console.log(drug)
+    if ((!drug) || (drug.medical_center_id != medical_center_id)) {
       return res
         .status(200)
         .json({ code: 200, success: false, message: `No drug with id: ${id}` });
