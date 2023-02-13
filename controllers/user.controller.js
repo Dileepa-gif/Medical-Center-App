@@ -46,7 +46,7 @@ exports.createOwner = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
 
@@ -91,7 +91,7 @@ exports.verifyOwner = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
 
@@ -132,7 +132,7 @@ exports.loginUser = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
 
@@ -162,7 +162,7 @@ exports.validateToken = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
 
@@ -195,7 +195,7 @@ exports.compleatOwnerRegistration = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
 
@@ -225,7 +225,7 @@ exports.getUserById = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
 
@@ -242,7 +242,7 @@ exports.getAllUsers = async function (req, res) {
       res.status(500).send({
         code: 500,
         success: false,
-        message: "Internal Server Error",
+        message: error.message || "Internal Server Error",
       });
     });
 };
@@ -266,7 +266,7 @@ exports.getUsersByMedicalCenter = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
 
@@ -293,7 +293,7 @@ exports.forgotPassword = async function (req, res, next) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
 
@@ -323,7 +323,7 @@ exports.resetForgotPassword = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
 
@@ -355,7 +355,7 @@ exports.resetPassword = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
 
@@ -415,10 +415,65 @@ exports.addEmployee = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
 
+
+exports.update = async function (req, res) {
+  try {
+
+    const id = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No user with id: ${id}`,
+      });
+    let user = await User.findById(id);
+    if (!user) {
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: `No user with id: ${id}` });
+    }else if(!user.is_completed){
+      return res
+      .status(200)
+      .json({ code: 200, success: false, message: `Please complete your registration` });
+    }
+    const emailExist = await User.findOne({ email: req.body.email });
+    if (emailExist && !(emailExist.id == user.id))
+      return res
+        .status(200)
+        .json({
+          code: 200,
+          success: false,
+          message: "Email already available",
+        });
+    user = {
+      first_name: req.body.first_name || user.first_name,
+      last_name: req.body.last_name || user.last_name,
+      email: req.body.email || user.email,
+      phone_number: req.body.phone_number || user.phone_number,
+      doctor_charge: req.body.doctor_charge || user.doctor_charge
+    };
+      const updatedUser = await User.findByIdAndUpdate(id, user, {
+        new: true,
+      });
+      return res.status(200).json({
+        code: 200,
+        success: true,
+        message: "User is updated successfully",
+        data: updatedUser,
+      });
+    
+  } catch (error) {
+    res.status(500).send({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
 
 exports.delete = function (req, res) {
   try {
@@ -428,8 +483,8 @@ exports.delete = function (req, res) {
       success: false,
       message: `Id is not valid`,
     });
-    User.findOneAndDelete({ _id: req.params.id }, function (err, user) {
-      if (err) {
+    User.findOneAndDelete({ _id: req.params.id }, function (error, user) {
+      if (error) {
         res
           .status(200)
           .json({ code: 200, success: false, message: "Unable to delete!" });
@@ -444,6 +499,6 @@ exports.delete = function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };

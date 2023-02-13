@@ -5,8 +5,8 @@ const mongoose = require("mongoose");
 
 
 exports.create = async function (req, res) {
-  // try {
-    const drugExist = await Drug.findOne({ use_name: req.body.use_name } || { drug_name: req.body.drug_name });
+  try {
+    const drugExist = await Drug.findOne({ $or:[ {use_name : req.body.use_name}, {drug_name : req.body.drug_name}], $and: [{medical_center_id: req.jwt.sub.medical_center_id}]});
     if (drugExist)
       return res
         .status(200)
@@ -32,11 +32,12 @@ exports.create = async function (req, res) {
       drug: savedDrug,
       message: "Created in successfully",
     });
-  // } catch (error) {
-  //   res
-  //     .status(500)
-  //     .json({ code: 500, success: false, message: "Internal Server Error" });
-  // }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ code: 500, success: false, message: 
+ error.message || "Internal Server Error" });
+  }
 };
 
 exports.getDrugById = async function (req, res) {
@@ -65,7 +66,8 @@ exports.getDrugById = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: 
+ error.message || "Internal Server Error" });
   }
 };
 
@@ -89,7 +91,52 @@ exports.getAllDrugsByMedicalCenter = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: 
+ error.message || "Internal Server Error" });
+  }
+};
+
+exports.update = async function (req, res) {
+  try {
+
+    const medical_center_id = req.jwt.sub.medical_center_id;
+    const id = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No drug with id: ${id}`,
+      });
+  let drug = await Drug.findOne({_id: id});
+  console.log(drug)
+    if ((!drug) || (drug.medical_center_id != medical_center_id)) {
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: `No drug with id: ${id}` });
+    }
+    drug = {
+      use_name: req.body.use_name || drug.use_name,
+      drug_name: req.body.drug_name || drug.drug_name,
+      manufacture: req.body.manufacture || drug.manufacture,
+      strength: req.body.strength || drug.strength,
+      type: req.body.type || drug.type
+    };
+      const updatedDrug = await Drug.findByIdAndUpdate(id, drug, {
+        new: true,
+      });
+      return res.status(200).json({
+        code: 200,
+        success: true,
+        message: "Drug is updated successfully",
+        data: updatedDrug,
+      });
+    
+  } catch (error) {
+    res.status(500).send({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
@@ -101,8 +148,8 @@ exports.delete = function (req, res) {
       success: false,
       message: `Id is not valid`,
     });
-    Drug.findOneAndDelete({ _id: req.params.id }, function (err, user) {
-      if (err) {
+    Drug.findOneAndDelete({ _id: req.params.id }, function (error, user) {
+      if (error) {
         res
           .status(200)
           .json({ code: 200, success: false, message: "Unable to delete!" });
@@ -117,7 +164,8 @@ exports.delete = function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
+      .json({ code: 500, success: false, message: 
+ error.message || "Internal Server Error" });
   }
 };
 

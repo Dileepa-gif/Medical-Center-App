@@ -1,9 +1,10 @@
 const routes = require("express").Router();
 const auth = require("../../../utils/auth");
-const medicalCenterController = require("../../../controllers/medical_center.controller");
+const MedicalCenterController = require("../../../controllers/medical_center.controller");
 
 
-routes.get("/getMedicalCenterById/:id", medicalCenterController.getMedicalCenterById);
-routes.get("/getAllMedicalCenters", medicalCenterController.getAllMedicalCenters);
+routes.get("/getMedicalCenterById/:id", MedicalCenterController.getMedicalCenterById);
+routes.get("/getAllMedicalCenters", MedicalCenterController.getAllMedicalCenters);
+routes.put("/update", auth.authMiddleware(["OWNER"]), MedicalCenterController.update);
 
 module.exports = routes;
