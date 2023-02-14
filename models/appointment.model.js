@@ -6,17 +6,29 @@ var appointmentSchema = new Schema({
     type: String,
     required: true,
   },
-  start_time: {
+  start_date_time: {
     type: Number,
     required: true,
   },
-  end_time: {
+  end_date_time: {
     type: Number,
     required: true,
   },
-  count: {
+  time_duration: {
     type: Number,
-    default: 0,
+    required: true,
+  },
+  is_available: {
+    type: Boolean,
+    default: true,
+  },
+  doctor_id: {
+    type: Schema.Types.ObjectId,
+    ref: "users",
+  },
+  medical_center_id: {
+    type: Schema.Types.ObjectId,
+    ref: "medicalcenters",
   },
 });
 

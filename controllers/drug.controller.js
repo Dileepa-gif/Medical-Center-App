@@ -35,8 +35,7 @@ exports.create = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: 
- error.message || "Internal Server Error" });
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
 
@@ -108,7 +107,6 @@ exports.update = async function (req, res) {
         message: `No drug with id: ${id}`,
       });
   let drug = await Drug.findOne({_id: id});
-  console.log(drug)
     if ((!drug) || (drug.medical_center_id != medical_center_id)) {
       return res
         .status(200)
