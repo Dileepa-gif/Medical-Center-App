@@ -1,6 +1,4 @@
 const Drug = require("../models/drug.model");
-const User = require("../models/user.model");
-const MedicalCenter = require("../models/medical_center.model");
 const mongoose = require("mongoose");
 
 
