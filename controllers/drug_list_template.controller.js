@@ -12,7 +12,7 @@ exports.create = async function (req, res) {
         .json({
           code: 200,
           success: false,
-          message: "Drug list templateExist already available",
+          message: "Drug list template already available",
         });
 
     const drugListTemplate = new DrugListTemplate({
@@ -73,7 +73,7 @@ exports.getDrugListTemplateById = async function (req, res) {
         return res.status(200).json({
           code: 200,
           success: false,
-          message: "No medical center not found",
+          message: "No drug list template not found",
         });
       }
     } catch (error) {
