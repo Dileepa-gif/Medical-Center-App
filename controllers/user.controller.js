@@ -502,3 +502,28 @@ exports.delete = function (req, res) {
       .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
+
+
+
+exports.getAllDoctorsByMedicalCenterId = async function (req, res) {
+  try {
+    const users = await User.find({ $or:[ {role : "OWNER"}, {role : "DOCTOR"}], $and: [{medical_center_id: req.params.id}]});
+    if (!users) {
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No valid doctors with this medical center`,
+      });
+    } else {
+      return res.status(200).json({
+        code: 200,
+        success: true,
+        data: users,
+      });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
+  }
+};
