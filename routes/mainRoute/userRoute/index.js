@@ -7,6 +7,7 @@ routes.post("/verifyOwner",auth.authMiddleware(["OWNER"]), UserController.verify
 routes.post("/compleatOwnerRegistration", auth.authMiddleware(["OWNER"]), UserController.compleatOwnerRegistration);
 
 routes.post("/loginUser", UserController.loginUser);
+routes.get("/logoutUser",auth.authMiddleware(["OWNER", "DOCTOR"]), UserController.logoutUser);
 routes.get("/validateToken",auth.authMiddleware(["OWNER"]), UserController.validateToken);
 routes.post("/forgotPassword", UserController.forgotPassword);
 routes.post("/resetForgotPassword", UserController.resetForgotPassword);

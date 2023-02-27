@@ -136,6 +136,32 @@ exports.loginUser = async function (req, res) {
   }
 };
 
+exports.logoutUser = async function (req, res) {
+  try {
+
+    let user = await User.findById(req.jwt.sub._id);
+    if (!user) {
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: `No user with id: ${id}` });
+    }
+      const updatedUser = await User.findByIdAndUpdate(req.jwt.sub._id, {$unset : {token :1}}, {new: true}).select("+token");
+      return res.status(200).json({
+        code: 200,
+        success: true,
+        message: "User is logout successfully",
+        data: updatedUser,
+      });
+    
+  } catch (error) {
+    res.status(500).send({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
 exports.validateToken = async function (req, res) {
   try {
     const user = await User.findById(req.jwt.sub._id);
@@ -527,3 +553,4 @@ exports.getAllDoctorsByMedicalCenterId = async function (req, res) {
       .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
   }
 };
+
