@@ -49,6 +49,9 @@ const userSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "medicalcenters",
   },
+  token:{
+    type: String,
+  }
 });
 
 userSchema.pre("save", async function (next) {
@@ -86,6 +89,18 @@ userSchema.post("findOneAndDelete", async function(doc) {
     console.log(error);
   }
 });
+
+
+// generate token
+userSchema.methods.generateToken=function(token,cb){
+  var user =this;
+  user.token=token;
+  user.save(function(err,user){
+      if(err) return cb(err);
+      cb(null,user);
+  })
+}
+
 
 
 

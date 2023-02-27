@@ -1,4 +1,5 @@
 const jsonwebtoken = require('jsonwebtoken');
+const User = require("../models/user.model");
 
 
   
@@ -20,6 +21,10 @@ function issueJWT(user) {
 
   const signedToken = jsonwebtoken.sign( payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: expiresIn});
 
+  user.generateToken(signedToken,(err,user)=>{
+      if(err) console.log(err);
+  }); 
+
   return {
     token: "Bearer " + signedToken,
     expires: expiresIn,
@@ -37,32 +42,35 @@ function issueJWT(user) {
 }
 
 
+
 const authMiddleware = (role_arr) => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     if (req.headers.authorization) {
       const tokenParts = req.headers.authorization.split(' ');
       
       if (tokenParts[0] === 'Bearer' && tokenParts[1].match(/\S+\.\S+\.\S+/) !== null) {
-  
-  
         try {
           const verification = jsonwebtoken.verify(tokenParts[1], process.env.ACCESS_TOKEN_SECRET);
-          var temp = true;
-          var role_list = '';
-          role_arr.forEach((role) => {
-            role_list=role_list + ', ' +role
-            if(verification.sub.role=== role){
-              req.jwt = verification;
-              temp = false;
-              next();
+          var user = await User.findById(verification.sub._id).select("+token");
+          if(user.token === tokenParts[1]){
+            var temp = true;
+            var role_list = '';
+            role_arr.forEach((role) => {
+              role_list=role_list + ', ' +role
+              if(verification.sub.role=== role){
+                req.jwt = verification;
+                temp = false;
+                next();
+              }
+            });
+            if(temp){
+              res.status(200).json({ code :200, success: false, message: "You are not" +  role_list});
             }
-          });
-          if(temp){
-            res.status(200).json({ code :200, success: false, message: "You are not" +  role_list});
-          }
-  
+          } else{
+            res.status(200).json({ code :200, success: false, message: "You must login again to visit this route" });
+          } 
         } catch (error) {
-          res.status(200).json({ code :200, success: false, message: "Your login is expired. Please login again" });
+          res.status(200).json({ code :200, success: false, message: error.message });
         }
   
       } else {
@@ -73,6 +81,7 @@ const authMiddleware = (role_arr) => {
     }
   }
 }
+
 
 
 
