@@ -13,6 +13,7 @@ exports.createByDoctor = async function (req, res) {
     });
     if(patientExist){
       const prescription = new Prescription({
+        date: req.body.date,
         doctor_id:  req.jwt.sub._id,
         medical_center_id: req.jwt.sub.medical_center_id,
         patient_id:patientExist.id,
@@ -37,6 +38,7 @@ exports.createByDoctor = async function (req, res) {
       });
       const savedPatient = await patient.save();
       const prescription = new Prescription({
+        date: req.body.date,
         doctor_id:  req.jwt.sub._id,
         medical_center_id: req.jwt.sub.medical_center_id,
         patient_id:savedPatient.id,
@@ -76,6 +78,7 @@ exports.createByDoctorUsingTemplate = async function (req, res) {
     if(patientExist){
       const drugListTemplate = await DrugListTemplate.findById(req.body.drug_list_template_id);
       const prescription = new Prescription({
+        date: req.body.date,
         doctor_id:  req.jwt.sub._id,
         medical_center_id: req.jwt.sub.medical_center_id,
         patient_id:patientExist.id,
@@ -101,6 +104,7 @@ exports.createByDoctorUsingTemplate = async function (req, res) {
       const savedPatient = await patient.save();
       const drugListTemplate = await DrugListTemplate.findById(req.body.drug_list_template_id);
       const prescription = new Prescription({
+        date: req.body.date,
         doctor_id:  req.jwt.sub._id,
         medical_center_id: req.jwt.sub.medical_center_id,
         patient_id:savedPatient.id,
@@ -139,6 +143,7 @@ exports.createByAssistance = async function (req, res) {
     });
     if(patientExist){
       const prescription = new Prescription({
+        date: req.body.date,
         doctor_id:  req.body.doctor_id,
         medical_center_id: req.jwt.sub.medical_center_id,
         assistance_id: req.jwt.sub._id,
@@ -162,6 +167,7 @@ exports.createByAssistance = async function (req, res) {
       });
       const savedPatient = await patient.save();
       const prescription = new Prescription({
+        date: req.body.date,
         doctor_id:  req.body.doctor_id,
         medical_center_id: req.jwt.sub.medical_center_id,
         patient_id: patientExist.id,

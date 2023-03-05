@@ -21,6 +21,10 @@ var drugItemSchema = new Schema({
 });
 
 var prescriptionSchema = new Schema({
+  date: {
+    type: String,
+    required: true,
+  },
   is_completed: {
     type: Boolean,
     default: true,
