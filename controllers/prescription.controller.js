@@ -2,6 +2,7 @@ const DrugListTemplate = require("../models/drug_list_template.model");
 const Prescription = require("../models/prescription.model");
 const Patient = require("../models/patient.model");
 const mongoose = require("mongoose");
+const date = require("../utils/date");
 
 exports.createByDoctor = async function (req, res) {
   try {
@@ -13,7 +14,7 @@ exports.createByDoctor = async function (req, res) {
     });
     if(patientExist){
       const prescription = new Prescription({
-        date: req.body.date,
+        date: date.date,
         doctor_id:  req.jwt.sub._id,
         medical_center_id: req.jwt.sub.medical_center_id,
         patient_id:patientExist.id,
@@ -38,7 +39,7 @@ exports.createByDoctor = async function (req, res) {
       });
       const savedPatient = await patient.save();
       const prescription = new Prescription({
-        date: req.body.date,
+        date: date.date,
         doctor_id:  req.jwt.sub._id,
         medical_center_id: req.jwt.sub.medical_center_id,
         patient_id:savedPatient.id,
@@ -78,7 +79,7 @@ exports.createByDoctorUsingTemplate = async function (req, res) {
     if(patientExist){
       const drugListTemplate = await DrugListTemplate.findById(req.body.drug_list_template_id);
       const prescription = new Prescription({
-        date: req.body.date,
+        date: date.date,
         doctor_id:  req.jwt.sub._id,
         medical_center_id: req.jwt.sub.medical_center_id,
         patient_id:patientExist.id,
@@ -104,7 +105,7 @@ exports.createByDoctorUsingTemplate = async function (req, res) {
       const savedPatient = await patient.save();
       const drugListTemplate = await DrugListTemplate.findById(req.body.drug_list_template_id);
       const prescription = new Prescription({
-        date: req.body.date,
+        date: date.date,
         doctor_id:  req.jwt.sub._id,
         medical_center_id: req.jwt.sub.medical_center_id,
         patient_id:savedPatient.id,
@@ -143,7 +144,7 @@ exports.createByAssistance = async function (req, res) {
     });
     if(patientExist){
       const prescription = new Prescription({
-        date: req.body.date,
+        date: date.date,
         doctor_id:  req.body.doctor_id,
         medical_center_id: req.jwt.sub.medical_center_id,
         assistance_id: req.jwt.sub._id,
@@ -167,7 +168,7 @@ exports.createByAssistance = async function (req, res) {
       });
       const savedPatient = await patient.save();
       const prescription = new Prescription({
-        date: req.body.date,
+        date: date.date,
         doctor_id:  req.body.doctor_id,
         medical_center_id: req.jwt.sub.medical_center_id,
         patient_id: patientExist.id,
@@ -457,7 +458,6 @@ exports.closePrescriptionsByPharmacist = async function (req, res) {
       });
 
     let prescription = await Prescription.findById(id);
-    console.log(prescription)
     if (!(prescription && ((prescription.is_completed == true)) && ((prescription.is_drugs_released == false))))
       return res.status(200).json({
         code: 200,
@@ -486,6 +486,49 @@ exports.closePrescriptionsByPharmacist = async function (req, res) {
     });
   }
 };
+
+exports.getAllPrescriptionsOfUser = async function (req, res) {
+  try {
+    const all_prescriptions = await Prescription.find({
+      $or:[ {doctor_id : req.jwt.sub._id}, {assistance_id : req.jwt.sub._id}, {pharmacist_id : req.jwt.sub._id}, ],
+      $and: [{medical_center_id: req.jwt.sub.medical_center_id}]
+    }).populate({ 
+      path: 'doctor_id',
+      model: 'User'
+    }).populate({ 
+      path: 'patient_id',
+      model: 'Patient'
+    }).populate({ 
+      path: 'assistance_id',
+      model: 'User'
+    }).populate({ 
+      path: 'pharmacist_id',
+      model: 'User'
+    });
+    if (!all_prescriptions) {
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No prescriptions with you`,
+      });
+    } else {
+      return res.status(200).json({
+        code: 200,
+        success: true,
+        all_prescriptions: all_prescriptions,
+      });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+  }
+};
+
 
 exports.getAllPrescriptionsOfUser = async function (req, res) {
   try {
