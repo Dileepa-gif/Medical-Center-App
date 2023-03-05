@@ -154,7 +154,7 @@ exports.delete = function (req, res) {
       res.status(200).json({
         code: 200,
         success: true,
-        message: "Drug removed successfully!",
+        message: "Drug is removed successfully!",
       });
     });
   } catch (error) {

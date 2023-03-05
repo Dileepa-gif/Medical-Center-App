@@ -1,107 +1,179 @@
-const DrugListTemplate = require("../models/prescription.model");
+const DrugListTemplate = require("../models/drug_list_template.model");
+const Prescription = require("../models/prescription.model");
+const Patient = require("../models/patient.model");
 const mongoose = require("mongoose");
 
-exports.create = async function (req, res) {
+exports.createByDoctor = async function (req, res) {
   try {
-    const drugListTemplateExist = await DrugListTemplate.findOne({
+    const patientExist = await Patient.findOne({
       $and: [
-        { template_name: req.body.template_name },
-        { doctor_id: req.jwt.sub._id },
-        { medical_center_id: req.jwt.sub.medical_center_id },
+        { name: req.body.name },
+        { phone_number: req.body.phone_number }
       ],
     });
-    if (drugListTemplateExist)
-      return res.status(200).json({
-        code: 200,
-        success: false,
-        message: "Drug list template already available",
+    if(patientExist){
+      const prescription = new Prescription({
+        doctor_id:  req.jwt.sub._id,
+        medical_center_id: req.jwt.sub.medical_center_id,
+        patient_id:patientExist.id,
+        drug_list: req.body.drug_list,
+        clinical_description: req.body.clinical_description || '', 
+        advice: req.body.advice || '' 
       });
-
-    const drugListTemplate = new DrugListTemplate({
-      template_name: req.body.template_name,
-      doctor_id: req.jwt.sub._id,
-      medical_center_id: req.jwt.sub.medical_center_id,
-      drug_list: req.body.drug_list,
-    });
-
-    var savedDrugListTemplate = await drugListTemplate.save();
-    res.status(200).json({
-      code: 200,
-      success: true,
-      drug: savedDrugListTemplate,
-      message: "Created in successfully",
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({
-        code: 500,
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
-  }
-};
-
-exports.getDrugListTemplateById = async function (req, res) {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id))
-      return res.status(200).json({
-        code: 200,
-        success: false,
-        message: `Id is not valid`,
-      });
-
-    const drug_list_template = await DrugListTemplate.findById(req.params.id).populate({ 
-      path: 'drug_list',
-      populate: {
-        path: 'drug',
-        model: 'Drug'
-      } 
-   });
-
-   return res
-   .status(200)
-   .json({
-     code: 200,
-     status: true,
-     drug_list_template: drug_list_template,
-   });
-  } catch (error) {
-    res
-      .status(500)
-      .json({
-        code: 500,
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
-  }
-};
-
-exports.getDrugListTemplatesByDoctor = async function (req, res) {
-  try {
-    const drug_list_templates = await DrugListTemplate.find({
-      $and: [
-        { doctor_id: req.jwt.sub._id },
-        { medical_center_id: req.jwt.sub.medical_center_id },
-      ],
-    }).populate({ 
-      path: 'drug_list',
-      populate: {
-        path: 'drug',
-        model: 'Drug'
-      } 
-   });
-    if (!drug_list_templates) {
-      return res.status(200).json({
-        code: 200,
-        success: false,
-        message: `No valid drug list template with you`,
-      });
-    } else {
-      return res.status(200).json({
+  
+      const savedPrescription = await prescription.save();
+      res.status(200).json({
         code: 200,
         success: true,
-        drug_list_templates: drug_list_templates,
+        prescription: savedPrescription,
+        message: "Created in successfully",
+      });
+    }else{
+      const patient = new Patient({
+        name:  req.body.name,
+        age: req.body.age,
+        address: req.body.address,
+        phone_number: req.body.phone_number,
+      });
+      const savedPatient = await patient.save();
+      const prescription = new Prescription({
+        doctor_id:  req.jwt.sub._id,
+        medical_center_id: req.jwt.sub.medical_center_id,
+        patient_id:savedPatient.id,
+        drug_list: req.body.drug_list,
+        clinical_description: req.body.clinical_description || '', 
+        advice: req.body.advice || '' 
+      });
+  
+      const savedPrescription = await prescription.save();
+      res.status(200).json({
+        code: 200,
+        success: true,
+        prescription: savedPrescription,
+        message: "Created in successfully",
+      });
+
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+  }
+};
+
+exports.createByDoctorUsingTemplate = async function (req, res) {
+  try {
+    const patientExist = await Patient.findOne({
+      $and: [
+        { name: req.body.name },
+        { phone_number: req.body.phone_number }
+      ],
+    });
+    if(patientExist){
+      const drugListTemplate = await DrugListTemplate.findById(req.body.drug_list_template_id);
+      const prescription = new Prescription({
+        doctor_id:  req.jwt.sub._id,
+        medical_center_id: req.jwt.sub.medical_center_id,
+        patient_id:patientExist.id,
+        drug_list: drugListTemplate.drug_list,
+        clinical_description: req.body.clinical_description || '', 
+        advice: req.body.advice || '' 
+      });
+  
+      const savedPrescription = await prescription.save();
+      res.status(200).json({
+        code: 200,
+        success: true,
+        prescription: savedPrescription,
+        message: "Created in successfully",
+      });
+    }else{
+      const patient = new Patient({
+        name:  req.body.name,
+        age: req.body.age,
+        address: req.body.address,
+        phone_number: req.body.phone_number,
+      });
+      const savedPatient = await patient.save();
+      const drugListTemplate = await DrugListTemplate.findById(req.body.drug_list_template_id);
+      const prescription = new Prescription({
+        doctor_id:  req.jwt.sub._id,
+        medical_center_id: req.jwt.sub.medical_center_id,
+        patient_id:savedPatient.id,
+        drug_list: drugListTemplate.drug_list,
+        clinical_description: req.body.clinical_description || '', 
+        advice: req.body.advice || '' 
+      });
+  
+      const savedPrescription = await prescription.save();
+      res.status(200).json({
+        code: 200,
+        success: true,
+        prescription: savedPrescription,
+        message: "Created in successfully",
+      });
+
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+  }
+};
+
+exports.createByAssistance = async function (req, res) {
+  try {
+    const patientExist = await Patient.findOne({
+      $and: [
+        { name: req.body.name },
+        { phone_number: req.body.phone_number }
+      ],
+    });
+    if(patientExist){
+      const prescription = new Prescription({
+        doctor_id:  req.body.doctor_id,
+        medical_center_id: req.jwt.sub.medical_center_id,
+        assistance_id: req.jwt.sub._id,
+        patient_id:patientExist.id,
+        is_completed: false,
+      });
+  
+      const savedPrescription = await prescription.save();
+      res.status(200).json({
+        code: 200,
+        success: true,
+        prescription: savedPrescription,
+        message: "Created in successfully",
+      });
+    }else{
+      const patient = new Patient({
+        name:  req.body.name,
+        age: req.body.age,
+        address: req.body.address,
+        phone_number: req.body.phone_number,
+      });
+      const savedPatient = await patient.save();
+      const prescription = new Prescription({
+        doctor_id:  req.body.doctor_id,
+        medical_center_id: req.jwt.sub.medical_center_id,
+        patient_id: patientExist.id,
+        is_completed: false,
+      });
+  
+      const savedPrescription = await prescription.save();
+      res.status(200).json({
+        code: 200,
+        success: true,
+        prescription: savedPrescription,
+        message: "Created in successfully",
       });
     }
   } catch (error) {
@@ -115,42 +187,120 @@ exports.getDrugListTemplatesByDoctor = async function (req, res) {
   }
 };
 
-exports.update = async function (req, res) {
+exports.getPrescriptionById = async function (req, res) {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `Id is not valid`,
+      });
+
+    const prescription = await Prescription.findById(req.params.id)
+    .populate({ 
+      path: 'doctor_id',
+      model: 'User'
+    }).populate({ 
+      path: 'patient_id',
+      model: 'Patient'
+    }).populate({ 
+      path: 'assistance_id',
+      model: 'User'
+    }).populate({ 
+      path: 'pharmacist_id',
+      model: 'User'
+    });
+
+   return res
+   .status(200)
+   .json({
+     code: 200,
+     status: true,
+     prescription: prescription,
+   });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+  }
+};
+
+exports.getReceivedPrescriptionsForDoctor = async function (req, res) {
+  try {
+    const received_prescriptions = await Prescription.find({
+      $and: [
+        { doctor_id: req.jwt.sub._id },
+        { medical_center_id: req.jwt.sub.medical_center_id },
+        { is_completed: false },
+      ],
+    }).populate({ 
+      path: 'patient_id',
+      model: 'Patient'
+    }).populate({ 
+      path: 'assistance_id',
+      model: 'User'
+    });
+    
+    if (!received_prescriptions) {
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No received prescriptions with you`,
+      });
+    } else {
+      return res.status(200).json({
+        code: 200,
+        success: true,
+        received_prescriptions: received_prescriptions,
+      });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+  }
+};
+
+
+exports.completeByDoctor = async function (req, res) {
   try {
     const id = req.params.id;
     if (!mongoose.Types.ObjectId.isValid(id))
       return res.status(200).json({
         code: 200,
         success: false,
-        message: `No drug list template with id: ${id}`,
+        message: `No prescription with id: ${id}`,
       });
 
-    const drugListTemplateExist = await DrugListTemplate.findOne({
-      $and: [
-        { template_name: req.body.template_name },
-        { doctor_id: req.jwt.sub._id },
-        { medical_center_id: req.jwt.sub.medical_center_id },
-      ],
-    });
-    if (drugListTemplateExist && (!(drugListTemplateExist.id == id)))
+    let prescription = await Prescription.findById(id);
+    if (!(prescription && ((prescription.is_completed == false))))
       return res.status(200).json({
         code: 200,
         success: false,
-        message: "Drug list template already available",
+        message: "There is no prescription or this prescription already completed",
       });
-    let drug_list_template = await DrugListTemplate.findOne({ _id: id });
-
-    drug_list_template = {
-      template_name: req.body.template_name || drug_list_template.template_name,
+    prescription = {
+      drug_list: req.body.drug_list,
+      is_completed : true,
+      clinical_description: req.body.clinical_description || '', 
+      advice: req.body.advice || '' 
     };
-    const updatedDrugListTemplate = await DrugListTemplate.findByIdAndUpdate(id, drug_list_template, {
+    const updatedPrescription = await Prescription.findByIdAndUpdate(id, prescription, {
       new: true,
     });
     return res.status(200).json({
       code: 200,
       success: true,
-      message: "Drug list template is updated successfully",
-      data: updatedDrugListTemplate,
+      message: "Prescription is updated successfully",
+      data: updatedPrescription,
     });
   } catch (error) {
     res.status(500).send({
@@ -161,92 +311,214 @@ exports.update = async function (req, res) {
   }
 };
 
-exports.delete = function (req, res) {
+
+exports.completeByDoctorUsingTemplate = async function (req, res) {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+    const id = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No prescription with id: ${id}`,
+      });
+
+    let prescription = await Prescription.findById(id);
+    if (!(prescription && ((prescription.is_completed == false))))
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: "There is no prescription or this prescription already completed",
+      });
+      
+    const drugListTemplate = await DrugListTemplate.findById(req.body.drug_list_template_id);  
+    prescription = {
+      drug_list: drugListTemplate.drug_list,
+      is_completed : true,
+      clinical_description: req.body.clinical_description || '', 
+      advice: req.body.advice || '' 
+    };
+    const updatedPrescription = await Prescription.findByIdAndUpdate(id, prescription, {
+      new: true,
+    });
     return res.status(200).json({
       code: 200,
-      success: false,
-      message: `Id is not valid`,
+      success: true,
+      message: "Prescription is updated successfully",
+      data: updatedPrescription,
     });
-    DrugListTemplate.findOneAndDelete({ _id: req.params.id }, function (error, user) {
-      if (error) {
-        res
-          .status(200)
-          .json({ code: 200, success: false, message: "Unable to delete!" });
-      }
+  } catch (error) {
+    res.status(500).send({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
 
-      res.status(200).json({
+exports.getCompletedPrescriptionsOfDoctor = async function (req, res) {
+  try {
+    const completed_prescriptions = await Prescription.find({
+      $and: [
+        { doctor_id: req.jwt.sub._id },
+        { medical_center_id: req.jwt.sub.medical_center_id },
+        { is_completed: true },
+      ],
+    }).populate({ 
+      path: 'patient_id',
+      model: 'Patient'
+    }).populate({ 
+      path: 'assistance_id',
+      model: 'User'
+    }).populate({ 
+      path: 'pharmacist_id',
+      model: 'User'
+    });
+    if (!completed_prescriptions) {
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No completed prescriptions with you`,
+      });
+    } else {
+      return res.status(200).json({
         code: 200,
         success: true,
-        message: "Drug list template removed successfully!",
+        completed_prescriptions: completed_prescriptions,
       });
-    });
+    }
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message:
- error.message || "Internal Server Error" });
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
   }
 };
 
-exports.deleteDrugs = async function (req, res) {
-  try {
-    let drug_list_template = await DrugListTemplate.findOne({ _id: req.params.id });
-    if (!drug_list_template)
-    return res.status(200).json({
-      code: 200,
-      success: false,
-      message: `Drug list template is not found`,
-    });
-    var drug_id_arr = req.body.drug_id_arr;
-    drug_id_arr.map(async id => {
 
-      updatedDrugListTemplate = await DrugListTemplate.findByIdAndUpdate(
-        {_id : req.params.id},
-        { $pull: { drug_list: { _id: id } } },
-        { new: true }
-      )
+exports.getDrugsNotReleasedPrescriptionsForPharmacist = async function (req, res) {
+  try {
+    const drugs_not_released_prescriptions = await Prescription.find({
+      $and: [
+        { is_drugs_released: false },
+        { medical_center_id: req.jwt.sub.medical_center_id },
+        { is_completed: true },
+      ],
+    }).populate({ 
+      path: 'patient_id',
+      model: 'Patient'
+    }).populate({ 
+      path: 'assistance_id',
+      model: 'User'
+    }).populate({ 
+      path: 'doctor_id',
+      model: 'User'
+    });
+    if (!drugs_not_released_prescriptions) {
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No drugs not released prescriptions`,
+      });
+    } else {
+      return res.status(200).json({
+        code: 200,
+        success: true,
+        drugs_not_released_prescriptions: drugs_not_released_prescriptions,
+      });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+  }
+};
+
+exports.closePrescriptionsByPharmacist = async function (req, res) {
+  try {
+    const id = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No prescription with id: ${id}`,
+      });
+
+    let prescription = await Prescription.findById(id);
+    console.log(prescription)
+    if (!(prescription && ((prescription.is_completed == true)) && ((prescription.is_drugs_released == false))))
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: "There is no prescription or drugs are released for this prescription",
+      });
+    prescription = {
+      pharmacist_id: req.jwt.sub._id,
+      total_cost_of_drugs: req.body.total_cost_of_drugs,
+      doctor_charge : req.body.doctor_charge, 
+    };
+    const updatedPrescription = await Prescription.findByIdAndUpdate(id, prescription, {
+      new: true,
     });
     return res.status(200).json({
       code: 200,
       success: true,
-      message: "Drug list template is updated successfully"
+      message: "Prescription is closed successfully",
+      data: updatedPrescription,
     });
-   
   } catch (error) {
-    res
-      .status(500)
-      .json({ code: 500, success: false, message:
- error.message || "Internal Server Error" });
+    res.status(500).send({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
-exports.addDrugs = async function (req, res) {
+exports.getAllPrescriptionsOfUser = async function (req, res) {
   try {
-    let drug_list_template = await DrugListTemplate.findOne({ _id: req.params.id });
-    if (!drug_list_template)
-    return res.status(200).json({
-      code: 200,
-      success: false,
-      message: `Drug list template is not found`,
+    const all_prescriptions = await Prescription.find({
+      $or:[ {doctor_id : req.jwt.sub._id}, {assistance_id : req.jwt.sub._id}, {pharmacist_id : req.jwt.sub._id}, ],
+      $and: [{medical_center_id: req.jwt.sub.medical_center_id}]
+    }).populate({ 
+      path: 'doctor_id',
+      model: 'User'
+    }).populate({ 
+      path: 'patient_id',
+      model: 'Patient'
+    }).populate({ 
+      path: 'assistance_id',
+      model: 'User'
+    }).populate({ 
+      path: 'pharmacist_id',
+      model: 'User'
     });
-    const updatedDrugListTemplate = await DrugListTemplate.findByIdAndUpdate(
-      {_id : req.params.id},
-      { $push: { drug_list: req.body.drug_list } },
-      { new: true }
-    )
-    return res.status(200).json({
-      code: 200,
-      success: true,
-      message: "Drug list template is updated successfully",
-      data: updatedDrugListTemplate,
-    });
-   
+    if (!all_prescriptions) {
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No prescriptions with you`,
+      });
+    } else {
+      return res.status(200).json({
+        code: 200,
+        success: true,
+        all_prescriptions: all_prescriptions,
+      });
+    }
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message:
- error.message || "Internal Server Error" });
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
   }
 };

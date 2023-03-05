@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
-const MedicalCenter = require("./medical_center.model");
+
 
 var Schema = mongoose.Schema;
 
