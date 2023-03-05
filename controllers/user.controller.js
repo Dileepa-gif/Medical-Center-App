@@ -436,7 +436,7 @@ exports.addEmployee = async function (req, res) {
     res.status(200).json({
       code: 200,
       success: true,
-      message: "Employee added successfully",
+      message: "Employee is added successfully",
     });
   } catch (error) {
     res
@@ -519,7 +519,7 @@ exports.delete = function (req, res) {
       res.status(200).json({
         code: 200,
         success: true,
-        message: "User removed successfully!",
+        message: "User is removed successfully!",
       });
     });
   } catch (error) {
