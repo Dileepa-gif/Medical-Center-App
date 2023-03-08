@@ -1,28 +1,27 @@
 const DrugListTemplate = require("../models/drug_list_template.model");
 const Prescription = require("../models/prescription.model");
+const User = require("../models/user.model");
 const Patient = require("../models/patient.model");
 const mongoose = require("mongoose");
 const date = require("../utils/date");
+const Socket  = require("../server");
 
 exports.createByDoctor = async function (req, res) {
   try {
     const patientExist = await Patient.findOne({
-      $and: [
-        { name: req.body.name },
-        { phone_number: req.body.phone_number }
-      ],
+      $and: [{ name: req.body.name }, { phone_number: req.body.phone_number }],
     });
-    if(patientExist){
+    if (patientExist) {
       const prescription = new Prescription({
         date: date.date,
-        doctor_id:  req.jwt.sub._id,
+        doctor_id: req.jwt.sub._id,
         medical_center_id: req.jwt.sub.medical_center_id,
-        patient_id:patientExist.id,
+        patient_id: patientExist.id,
         drug_list: req.body.drug_list,
-        clinical_description: req.body.clinical_description || '', 
-        advice: req.body.advice || '' 
+        clinical_description: req.body.clinical_description || "",
+        advice: req.body.advice || "",
       });
-  
+
       const savedPrescription = await prescription.save();
       res.status(200).json({
         code: 200,
@@ -30,9 +29,9 @@ exports.createByDoctor = async function (req, res) {
         prescription: savedPrescription,
         message: "Created in successfully",
       });
-    }else{
+    } else {
       const patient = new Patient({
-        name:  req.body.name,
+        name: req.body.name,
         age: req.body.age,
         address: req.body.address,
         phone_number: req.body.phone_number,
@@ -40,14 +39,14 @@ exports.createByDoctor = async function (req, res) {
       const savedPatient = await patient.save();
       const prescription = new Prescription({
         date: date.date,
-        doctor_id:  req.jwt.sub._id,
+        doctor_id: req.jwt.sub._id,
         medical_center_id: req.jwt.sub.medical_center_id,
-        patient_id:savedPatient.id,
+        patient_id: savedPatient.id,
         drug_list: req.body.drug_list,
-        clinical_description: req.body.clinical_description || '', 
-        advice: req.body.advice || '' 
+        clinical_description: req.body.clinical_description || "",
+        advice: req.body.advice || "",
       });
-  
+
       const savedPrescription = await prescription.save();
       res.status(200).json({
         code: 200,
@@ -55,39 +54,35 @@ exports.createByDoctor = async function (req, res) {
         prescription: savedPrescription,
         message: "Created in successfully",
       });
-
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        code: 500,
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
 exports.createByDoctorUsingTemplate = async function (req, res) {
   try {
     const patientExist = await Patient.findOne({
-      $and: [
-        { name: req.body.name },
-        { phone_number: req.body.phone_number }
-      ],
+      $and: [{ name: req.body.name }, { phone_number: req.body.phone_number }],
     });
-    if(patientExist){
-      const drugListTemplate = await DrugListTemplate.findById(req.body.drug_list_template_id);
+    if (patientExist) {
+      const drugListTemplate = await DrugListTemplate.findById(
+        req.body.drug_list_template_id
+      );
       const prescription = new Prescription({
         date: date.date,
-        doctor_id:  req.jwt.sub._id,
+        doctor_id: req.jwt.sub._id,
         medical_center_id: req.jwt.sub.medical_center_id,
-        patient_id:patientExist.id,
+        patient_id: patientExist.id,
         drug_list: drugListTemplate.drug_list,
-        clinical_description: req.body.clinical_description || '', 
-        advice: req.body.advice || '' 
+        clinical_description: req.body.clinical_description || "",
+        advice: req.body.advice || "",
       });
-  
+
       const savedPrescription = await prescription.save();
       res.status(200).json({
         code: 200,
@@ -95,25 +90,27 @@ exports.createByDoctorUsingTemplate = async function (req, res) {
         prescription: savedPrescription,
         message: "Created in successfully",
       });
-    }else{
+    } else {
       const patient = new Patient({
-        name:  req.body.name,
+        name: req.body.name,
         age: req.body.age,
         address: req.body.address,
         phone_number: req.body.phone_number,
       });
       const savedPatient = await patient.save();
-      const drugListTemplate = await DrugListTemplate.findById(req.body.drug_list_template_id);
+      const drugListTemplate = await DrugListTemplate.findById(
+        req.body.drug_list_template_id
+      );
       const prescription = new Prescription({
         date: date.date,
-        doctor_id:  req.jwt.sub._id,
+        doctor_id: req.jwt.sub._id,
         medical_center_id: req.jwt.sub.medical_center_id,
-        patient_id:savedPatient.id,
+        patient_id: savedPatient.id,
         drug_list: drugListTemplate.drug_list,
-        clinical_description: req.body.clinical_description || '', 
-        advice: req.body.advice || '' 
+        clinical_description: req.body.clinical_description || "",
+        advice: req.body.advice || "",
       });
-  
+
       const savedPrescription = await prescription.save();
       res.status(200).json({
         code: 200,
@@ -121,16 +118,13 @@ exports.createByDoctorUsingTemplate = async function (req, res) {
         prescription: savedPrescription,
         message: "Created in successfully",
       });
-
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        code: 500,
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
@@ -151,8 +145,25 @@ exports.createByAssistance = async function (req, res) {
         patient_id:patientExist.id,
         is_completed: false,
       });
-  
+
       const savedPrescription = await prescription.save();
+      const received_prescriptions = await Prescription.find({
+        $and: [
+          { doctor_id: savedPrescription.doctor_id },
+          { medical_center_id: savedPrescription.medical_center_id },
+          { is_completed: false },
+        ],
+      })
+        .populate({
+          path: "patient_id",
+          model: "Patient",
+        })
+        .populate({
+          path: "assistance_id",
+          model: "User",
+        });
+
+      Socket.Socket(req.body.doctor_id, "received_prescriptions",received_prescriptions);
       res.status(200).json({
         code: 200,
         success: true,
@@ -174,8 +185,25 @@ exports.createByAssistance = async function (req, res) {
         patient_id: patientExist.id,
         is_completed: false,
       });
-  
+
       const savedPrescription = await prescription.save();
+      const received_prescriptions = await Prescription.find({
+        $and: [
+          { doctor_id: savedPrescription.doctor_id },
+          { medical_center_id: savedPrescription.medical_center_id },
+          { is_completed: false },
+        ],
+      })
+        .populate({
+          path: "patient_id",
+          model: "Patient",
+        })
+        .populate({
+          path: "assistance_id",
+          model: "User",
+        });
+
+      Socket.Socket(req.body.doctor_id, "received_prescriptions",received_prescriptions);
       res.status(200).json({
         code: 200,
         success: true,
@@ -184,13 +212,11 @@ exports.createByAssistance = async function (req, res) {
       });
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        code: 500,
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
@@ -204,35 +230,34 @@ exports.getPrescriptionById = async function (req, res) {
       });
 
     const prescription = await Prescription.findById(req.params.id)
-    .populate({ 
-      path: 'doctor_id',
-      model: 'User'
-    }).populate({ 
-      path: 'patient_id',
-      model: 'Patient'
-    }).populate({ 
-      path: 'assistance_id',
-      model: 'User'
-    }).populate({ 
-      path: 'pharmacist_id',
-      model: 'User'
-    });
-
-   return res
-   .status(200)
-   .json({
-     code: 200,
-     status: true,
-     prescription: prescription,
-   });
-  } catch (error) {
-    res
-      .status(500)
-      .json({
-        code: 500,
-        success: false,
-        message: error.message || "Internal Server Error",
+      .populate({
+        path: "doctor_id",
+        model: "User",
+      })
+      .populate({
+        path: "patient_id",
+        model: "Patient",
+      })
+      .populate({
+        path: "assistance_id",
+        model: "User",
+      })
+      .populate({
+        path: "pharmacist_id",
+        model: "User",
       });
+
+    return res.status(200).json({
+      code: 200,
+      status: true,
+      prescription: prescription,
+    });
+  } catch (error) {
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
@@ -244,14 +269,16 @@ exports.getReceivedPrescriptionsForDoctor = async function (req, res) {
         { medical_center_id: req.jwt.sub.medical_center_id },
         { is_completed: false },
       ],
-    }).populate({ 
-      path: 'patient_id',
-      model: 'Patient'
-    }).populate({ 
-      path: 'assistance_id',
-      model: 'User'
-    });
-    
+    })
+      .populate({
+        path: "patient_id",
+        model: "Patient",
+      })
+      .populate({
+        path: "assistance_id",
+        model: "User",
+      });
+
     if (!received_prescriptions) {
       return res.status(200).json({
         code: 200,
@@ -266,16 +293,13 @@ exports.getReceivedPrescriptionsForDoctor = async function (req, res) {
       });
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        code: 500,
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
-
 
 exports.completeByDoctor = async function (req, res) {
   try {
@@ -288,21 +312,21 @@ exports.completeByDoctor = async function (req, res) {
       });
 
     let prescription = await Prescription.findById(id);
-    if (!(prescription && ((prescription.is_completed == false))))
+    if (!(prescription && prescription.is_completed == false))
       return res.status(200).json({
         code: 200,
         success: false,
-        message: "There is no prescription or this prescription already completed",
+        message:
+          "There is no prescription or this prescription already completed",
       });
     prescription = {
       drug_list: req.body.drug_list,
-      is_completed : true,
-      clinical_description: req.body.clinical_description || '', 
-      advice: req.body.advice || '' 
+      is_completed: true,
+      clinical_description: req.body.clinical_description || "",
+      advice: req.body.advice || "",
     };
-    const updatedPrescription = await Prescription.findByIdAndUpdate(id, prescription, {
-      new: true,
-    });
+    const updatedPrescription = await Prescription.findByIdAndUpdate(id, prescription, { new: true,});
+    drugsNotReleasedPrescriptions(updatedPrescription.medical_center_id);
     return res.status(200).json({
       code: 200,
       success: true,
@@ -317,7 +341,6 @@ exports.completeByDoctor = async function (req, res) {
     });
   }
 };
-
 
 exports.completeByDoctorUsingTemplate = async function (req, res) {
   try {
@@ -330,23 +353,27 @@ exports.completeByDoctorUsingTemplate = async function (req, res) {
       });
 
     let prescription = await Prescription.findById(id);
-    if (!(prescription && ((prescription.is_completed == false))))
+    if (!(prescription && prescription.is_completed == false))
       return res.status(200).json({
         code: 200,
         success: false,
-        message: "There is no prescription or this prescription already completed",
+        message:
+          "There is no prescription or this prescription already completed",
       });
-      
-    const drugListTemplate = await DrugListTemplate.findById(req.body.drug_list_template_id);  
+
+    const drugListTemplate = await DrugListTemplate.findById(
+      req.body.drug_list_template_id
+    );
     prescription = {
       drug_list: drugListTemplate.drug_list,
-      is_completed : true,
-      clinical_description: req.body.clinical_description || '', 
-      advice: req.body.advice || '' 
+      is_completed: true,
+      clinical_description: req.body.clinical_description || "",
+      advice: req.body.advice || "",
     };
-    const updatedPrescription = await Prescription.findByIdAndUpdate(id, prescription, {
-      new: true,
-    });
+
+
+    const updatedPrescription = await Prescription.findByIdAndUpdate(id, prescription, { new: true,});
+    drugsNotReleasedPrescriptions(updatedPrescription.medical_center_id);
     return res.status(200).json({
       code: 200,
       success: true,
@@ -362,6 +389,44 @@ exports.completeByDoctorUsingTemplate = async function (req, res) {
   }
 };
 
+const drugsNotReleasedPrescriptions = async function (medical_center_id) {
+  try {
+    const drugs_not_released_prescriptions = await Prescription.find({
+      $and: [
+        { is_drugs_released: false },
+        { medical_center_id: medical_center_id },
+        { is_completed: true },
+      ],
+    })
+      .populate({
+        path: "patient_id",
+        model: "Patient",
+      })
+      .populate({
+        path: "assistance_id",
+        model: "User",
+      })
+      .populate({
+        path: "doctor_id",
+        model: "User",
+      });
+
+    const pharmacists = await User.find({$and: [{role : "PHARMACIST"},{medical_center_id: medical_center_id}]});
+    pharmacists.forEach(pharmacist => {
+      Socket.Socket(pharmacist.id, "drugs_not_released_prescriptions",drugs_not_released_prescriptions);
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+
+
 exports.getCompletedPrescriptionsOfDoctor = async function (req, res) {
   try {
     const completed_prescriptions = await Prescription.find({
@@ -370,16 +435,19 @@ exports.getCompletedPrescriptionsOfDoctor = async function (req, res) {
         { medical_center_id: req.jwt.sub.medical_center_id },
         { is_completed: true },
       ],
-    }).populate({ 
-      path: 'patient_id',
-      model: 'Patient'
-    }).populate({ 
-      path: 'assistance_id',
-      model: 'User'
-    }).populate({ 
-      path: 'pharmacist_id',
-      model: 'User'
-    });
+    })
+      .populate({
+        path: "patient_id",
+        model: "Patient",
+      })
+      .populate({
+        path: "assistance_id",
+        model: "User",
+      })
+      .populate({
+        path: "pharmacist_id",
+        model: "User",
+      });
     if (!completed_prescriptions) {
       return res.status(200).json({
         code: 200,
@@ -394,18 +462,18 @@ exports.getCompletedPrescriptionsOfDoctor = async function (req, res) {
       });
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        code: 500,
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
-
-exports.getDrugsNotReleasedPrescriptionsForPharmacist = async function (req, res) {
+exports.getDrugsNotReleasedPrescriptionsForPharmacist = async function (
+  req,
+  res
+) {
   try {
     const drugs_not_released_prescriptions = await Prescription.find({
       $and: [
@@ -413,16 +481,19 @@ exports.getDrugsNotReleasedPrescriptionsForPharmacist = async function (req, res
         { medical_center_id: req.jwt.sub.medical_center_id },
         { is_completed: true },
       ],
-    }).populate({ 
-      path: 'patient_id',
-      model: 'Patient'
-    }).populate({ 
-      path: 'assistance_id',
-      model: 'User'
-    }).populate({ 
-      path: 'doctor_id',
-      model: 'User'
-    });
+    })
+      .populate({
+        path: "patient_id",
+        model: "Patient",
+      })
+      .populate({
+        path: "assistance_id",
+        model: "User",
+      })
+      .populate({
+        path: "doctor_id",
+        model: "User",
+      });
     if (!drugs_not_released_prescriptions) {
       return res.status(200).json({
         code: 200,
@@ -437,13 +508,11 @@ exports.getDrugsNotReleasedPrescriptionsForPharmacist = async function (req, res
       });
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        code: 500,
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
@@ -458,20 +527,31 @@ exports.closePrescriptionsByPharmacist = async function (req, res) {
       });
 
     let prescription = await Prescription.findById(id);
-    if (!(prescription && ((prescription.is_completed == true)) && ((prescription.is_drugs_released == false))))
+    if (
+      !(
+        prescription &&
+        prescription.is_completed == true &&
+        prescription.is_drugs_released == false
+      )
+    )
       return res.status(200).json({
         code: 200,
         success: false,
-        message: "There is no prescription or drugs are released for this prescription",
+        message:
+          "There is no prescription or drugs are released for this prescription",
       });
     prescription = {
       pharmacist_id: req.jwt.sub._id,
       total_cost_of_drugs: req.body.total_cost_of_drugs,
-      doctor_charge : req.body.doctor_charge, 
+      doctor_charge: req.body.doctor_charge,
     };
-    const updatedPrescription = await Prescription.findByIdAndUpdate(id, prescription, {
-      new: true,
-    });
+    const updatedPrescription = await Prescription.findByIdAndUpdate(
+      id,
+      prescription,
+      {
+        new: true,
+      }
+    );
     return res.status(200).json({
       code: 200,
       success: true,
@@ -490,21 +570,29 @@ exports.closePrescriptionsByPharmacist = async function (req, res) {
 exports.getAllPrescriptionsOfUser = async function (req, res) {
   try {
     const all_prescriptions = await Prescription.find({
-      $or:[ {doctor_id : req.jwt.sub._id}, {assistance_id : req.jwt.sub._id}, {pharmacist_id : req.jwt.sub._id}, ],
-      $and: [{medical_center_id: req.jwt.sub.medical_center_id}]
-    }).populate({ 
-      path: 'doctor_id',
-      model: 'User'
-    }).populate({ 
-      path: 'patient_id',
-      model: 'Patient'
-    }).populate({ 
-      path: 'assistance_id',
-      model: 'User'
-    }).populate({ 
-      path: 'pharmacist_id',
-      model: 'User'
-    });
+      $or: [
+        { doctor_id: req.jwt.sub._id },
+        { assistance_id: req.jwt.sub._id },
+        { pharmacist_id: req.jwt.sub._id },
+      ],
+      $and: [{ medical_center_id: req.jwt.sub.medical_center_id }],
+    })
+      .populate({
+        path: "doctor_id",
+        model: "User",
+      })
+      .populate({
+        path: "patient_id",
+        model: "Patient",
+      })
+      .populate({
+        path: "assistance_id",
+        model: "User",
+      })
+      .populate({
+        path: "pharmacist_id",
+        model: "User",
+      });
     if (!all_prescriptions) {
       return res.status(200).json({
         code: 200,
@@ -519,35 +607,40 @@ exports.getAllPrescriptionsOfUser = async function (req, res) {
       });
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        code: 500,
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
-
 
 exports.getAllPrescriptionsOfUser = async function (req, res) {
   try {
     const all_prescriptions = await Prescription.find({
-      $or:[ {doctor_id : req.jwt.sub._id}, {assistance_id : req.jwt.sub._id}, {pharmacist_id : req.jwt.sub._id}, ],
-      $and: [{medical_center_id: req.jwt.sub.medical_center_id}]
-    }).populate({ 
-      path: 'doctor_id',
-      model: 'User'
-    }).populate({ 
-      path: 'patient_id',
-      model: 'Patient'
-    }).populate({ 
-      path: 'assistance_id',
-      model: 'User'
-    }).populate({ 
-      path: 'pharmacist_id',
-      model: 'User'
-    });
+      $or: [
+        { doctor_id: req.jwt.sub._id },
+        { assistance_id: req.jwt.sub._id },
+        { pharmacist_id: req.jwt.sub._id },
+      ],
+      $and: [{ medical_center_id: req.jwt.sub.medical_center_id }],
+    })
+      .populate({
+        path: "doctor_id",
+        model: "User",
+      })
+      .populate({
+        path: "patient_id",
+        model: "Patient",
+      })
+      .populate({
+        path: "assistance_id",
+        model: "User",
+      })
+      .populate({
+        path: "pharmacist_id",
+        model: "User",
+      });
     if (!all_prescriptions) {
       return res.status(200).json({
         code: 200,
@@ -562,12 +655,10 @@ exports.getAllPrescriptionsOfUser = async function (req, res) {
       });
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        code: 500,
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };

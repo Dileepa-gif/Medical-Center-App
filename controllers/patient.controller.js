@@ -3,19 +3,14 @@ const Patient = require("../models/patient.model");
 exports.create = async function (req, res) {
   try {
     const patientExist = await Patient.findOne({
-      $and: [
-        { name: req.body.name },
-        { phone_number: req.body.phone_number },
-      ],
+      $and: [{ name: req.body.name }, { phone_number: req.body.phone_number }],
     });
     if (patientExist)
-      return res
-        .status(200)
-        .json({
-          code: 200,
-          success: false,
-          message: "Patient already available",
-        });
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: "Patient already available",
+      });
 
     const patient = new Patient({
       name: req.body.name,
@@ -29,13 +24,37 @@ exports.create = async function (req, res) {
     res.status(200).json({
       code: 200,
       success: true,
-      patient : savedPatient,
+      patient: savedPatient,
       message: "Patient is created successfully",
     });
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+  }
+};
+
+exports.searchByPhoneNumber = async function (req, res) {
+  try {
+    const patients = await Patient.find({
+      phone_number: { $regex: ".*" + req.body.phone_number + ".*" },
+    });
+
+    return res.status(200).json({
+      code: 200,
+      success: true,
+      data: patients,
+    });
+  } catch (error) {
+    res.status(500).send({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
