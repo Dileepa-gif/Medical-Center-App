@@ -3,12 +3,11 @@ const express = require("express");
 const connectDB = require("./config/db.config");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-
-
-const { Server } = require("socket.io");
-
+const http = require("http");
 const app = express();
 
+const socketIO = require("socket.io");
+const auth = require("./utils/auth");
 
 app.use(express.json());
 app.use(cors());
@@ -21,44 +20,46 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-
-
-
-
 app.use("/", require("./routes/index"));
 
 const PORT = process.env.PORT || 5000;
 
+app.options("*", cors());
+
+const server = http.createServer(app);
 
 
+const io = socketIO(server, {
+  transports: ["polling"],
+  cors: {
+    cors: {
+      origin: "http://localhost:3000",
+      methods: ["GET", "POST"],
+    },
+  },
+});
 
+io.on("connection", (socket) => {
+  console.log(`User Connected: ${socket.id}`);
 
-app.options('*', cors());
-
-
-async function server() {
-  const http = require("http").createServer(app);
-  const io = new Server(http, { transports: ["websocket"] });
-  const roomName = "dogfoot";
-  io.on("connection", (socket) => {
-    socket.on("join", () => {
-      socket.join(roomName);
-      socket.to(roomName).emit("joined");
-    });
-    socket.on("offer", (offer) => {
-      socket.to(roomName).emit("offer", offer);
-    });
-    socket.on("answer", (answer) => {
-      socket.to(roomName).emit("answer", answer);
-    });
-    socket.on("ice", (ice) => {
-      socket.to(roomName).emit("ice", ice);
-    });
+  socket.on("login", async (token) => {
+    const tokenValidation = await auth.tokenValidation(token);
+    if (tokenValidation.validation == true) {
+      socket.join(tokenValidation.id);
+      console.log(tokenValidation.id);
+    }
   });
-http.listen(PORT, () => {
+  socket.on("disconnect", () => {
+    socket.disconnect();
+    console.log(`socket ${socket.id} disconnected`);
+  });
+});
+
+const Socket = (receiver, event, data) => {
+  console.log(receiver)
+  io.sockets.to(receiver).emit(event, data);
+};
+module.exports.Socket = Socket;
+server.listen(PORT, () => {
   console.log(`Listening on port: ${PORT}`);
 });
-}
-server();
-
-
