@@ -4,7 +4,7 @@ const User = require("../models/user.model");
 const Patient = require("../models/patient.model");
 const mongoose = require("mongoose");
 const date = require("../utils/date");
-const Socket  = require("../server");
+const Socket = require("../server");
 
 exports.createByDoctor = async function (req, res) {
   try {
@@ -131,18 +131,15 @@ exports.createByDoctorUsingTemplate = async function (req, res) {
 exports.createByAssistance = async function (req, res) {
   try {
     const patientExist = await Patient.findOne({
-      $and: [
-        { name: req.body.name },
-        { phone_number: req.body.phone_number }
-      ],
+      $and: [{ name: req.body.name }, { phone_number: req.body.phone_number }],
     });
-    if(patientExist){
+    if (patientExist) {
       const prescription = new Prescription({
         date: date.date,
-        doctor_id:  req.body.doctor_id,
+        doctor_id: req.body.doctor_id,
         medical_center_id: req.jwt.sub.medical_center_id,
         assistance_id: req.jwt.sub._id,
-        patient_id:patientExist.id,
+        patient_id: patientExist.id,
         is_completed: false,
       });
 
@@ -163,16 +160,20 @@ exports.createByAssistance = async function (req, res) {
           model: "User",
         });
 
-      Socket.Socket(req.body.doctor_id, "received_prescriptions",received_prescriptions);
+      Socket.Socket(
+        req.body.doctor_id,
+        "received_prescriptions",
+        received_prescriptions
+      );
       res.status(200).json({
         code: 200,
         success: true,
         prescription: savedPrescription,
         message: "Created in successfully",
       });
-    }else{
+    } else {
       const patient = new Patient({
-        name:  req.body.name,
+        name: req.body.name,
         age: req.body.age,
         address: req.body.address,
         phone_number: req.body.phone_number,
@@ -180,7 +181,7 @@ exports.createByAssistance = async function (req, res) {
       const savedPatient = await patient.save();
       const prescription = new Prescription({
         date: date.date,
-        doctor_id:  req.body.doctor_id,
+        doctor_id: req.body.doctor_id,
         medical_center_id: req.jwt.sub.medical_center_id,
         patient_id: patientExist.id,
         is_completed: false,
@@ -203,7 +204,11 @@ exports.createByAssistance = async function (req, res) {
           model: "User",
         });
 
-      Socket.Socket(req.body.doctor_id, "received_prescriptions",received_prescriptions);
+      Socket.Socket(
+        req.body.doctor_id,
+        "received_prescriptions",
+        received_prescriptions
+      );
       res.status(200).json({
         code: 200,
         success: true,
@@ -325,7 +330,11 @@ exports.completeByDoctor = async function (req, res) {
       clinical_description: req.body.clinical_description || "",
       advice: req.body.advice || "",
     };
-    const updatedPrescription = await Prescription.findByIdAndUpdate(id, prescription, { new: true,});
+    const updatedPrescription = await Prescription.findByIdAndUpdate(
+      id,
+      prescription,
+      { new: true }
+    );
     drugsNotReleasedPrescriptions(updatedPrescription.medical_center_id);
     return res.status(200).json({
       code: 200,
@@ -371,8 +380,11 @@ exports.completeByDoctorUsingTemplate = async function (req, res) {
       advice: req.body.advice || "",
     };
 
-
-    const updatedPrescription = await Prescription.findByIdAndUpdate(id, prescription, { new: true,});
+    const updatedPrescription = await Prescription.findByIdAndUpdate(
+      id,
+      prescription,
+      { new: true }
+    );
     drugsNotReleasedPrescriptions(updatedPrescription.medical_center_id);
     return res.status(200).json({
       code: 200,
@@ -411,11 +423,16 @@ const drugsNotReleasedPrescriptions = async function (medical_center_id) {
         model: "User",
       });
 
-    const pharmacists = await User.find({$and: [{role : "PHARMACIST"},{medical_center_id: medical_center_id}]});
-    pharmacists.forEach(pharmacist => {
-      Socket.Socket(pharmacist.id, "drugs_not_released_prescriptions",drugs_not_released_prescriptions);
+    const pharmacists = await User.find({
+      $and: [{ role: "PHARMACIST" }, { medical_center_id: medical_center_id }],
     });
-    
+    pharmacists.forEach((pharmacist) => {
+      Socket.Socket(
+        pharmacist.id,
+        "drugs_not_released_prescriptions",
+        drugs_not_released_prescriptions
+      );
+    });
   } catch (error) {
     res.status(500).json({
       code: 500,
@@ -424,8 +441,6 @@ const drugsNotReleasedPrescriptions = async function (medical_center_id) {
     });
   }
 };
-
-
 
 exports.getCompletedPrescriptionsOfDoctor = async function (req, res) {
   try {
@@ -654,6 +669,76 @@ exports.getAllPrescriptionsOfUser = async function (req, res) {
         all_prescriptions: all_prescriptions,
       });
     }
+  } catch (error) {
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+exports.getEarningsOfDoctor = async function (req, res) {
+  try {
+    Prescription.aggregate([
+      {
+        $match: {
+          $and: [
+            { doctor_id: mongoose.Types.ObjectId(req.jwt.sub._id) },
+            {
+              medical_center_id: mongoose.Types.ObjectId(
+                req.jwt.sub.medical_center_id
+              ),
+            },
+            { is_completed: true },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: { date: "$date" },
+          total_treatment: { $count: {} },
+          total_earnings: { $sum: "$doctor_charge" },
+        },
+      },
+      { $sort: { _id: -1 } },
+    ]).exec(function (error, earnings) {
+      if (error) {
+        return res
+          .status(200)
+          .json({ code: 200, status: false, message: "Invalid Request!" });
+      }
+      Prescription.aggregate([
+        {
+          $match: {
+            $and: [
+              { doctor_id: mongoose.Types.ObjectId(req.jwt.sub._id) },
+              {medical_center_id: mongoose.Types.ObjectId(req.jwt.sub.medical_center_id)},
+              { is_completed: true },
+              { date: date.date }
+            ],
+          },
+        },
+        {
+          $group: {
+            _id: { date: "$date" },
+            today_total_treatment: { $count: {} },
+            today_total_earnings: { $sum: "$doctor_charge" },
+          },
+        },
+        { $sort: { date: 1 } },
+      ]).exec(function (error, today_earnings) {
+        if (error) {
+          return res
+            .status(200)
+            .json({ code: 200, status: false, message: "Invalid Request!" });
+        }
+
+        return res
+          .status(200)
+          .json({ code: 200, status: true, earnings: earnings, today_earnings:today_earnings });
+      });
+    });
   } catch (error) {
     res.status(500).json({
       code: 500,
