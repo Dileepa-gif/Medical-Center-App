@@ -41,6 +41,10 @@ var prescriptionSchema = new Schema({
     type: Number,
     default: 0,
   },
+  service_charge: {
+    type: Number,
+    default: 0,
+  },
   clinical_description: {
     type: String
   },

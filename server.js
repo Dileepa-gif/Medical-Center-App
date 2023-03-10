@@ -33,7 +33,8 @@ const io = socketIO(server, {
   transports: ["polling"],
   cors: {
     cors: {
-      origin: "http://localhost:3000",
+      origin: "",
+      // origin: "http://localhost:3000",
       methods: ["GET", "POST"],
     },
   },

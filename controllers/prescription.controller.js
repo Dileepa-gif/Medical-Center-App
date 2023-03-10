@@ -23,6 +23,7 @@ exports.createByDoctor = async function (req, res) {
       });
 
       const savedPrescription = await prescription.save();
+      drugsNotReleasedPrescriptions(savedPrescription.medical_center_id);
       res.status(200).json({
         code: 200,
         success: true,
@@ -48,6 +49,7 @@ exports.createByDoctor = async function (req, res) {
       });
 
       const savedPrescription = await prescription.save();
+      drugsNotReleasedPrescriptions(savedPrescription.medical_center_id);
       res.status(200).json({
         code: 200,
         success: true,
@@ -84,6 +86,7 @@ exports.createByDoctorUsingTemplate = async function (req, res) {
       });
 
       const savedPrescription = await prescription.save();
+      drugsNotReleasedPrescriptions(savedPrescription.medical_center_id);
       res.status(200).json({
         code: 200,
         success: true,
@@ -112,6 +115,7 @@ exports.createByDoctorUsingTemplate = async function (req, res) {
       });
 
       const savedPrescription = await prescription.save();
+      drugsNotReleasedPrescriptions(savedPrescription.medical_center_id);
       res.status(200).json({
         code: 200,
         success: true,
@@ -559,6 +563,7 @@ exports.closePrescriptionsByPharmacist = async function (req, res) {
       pharmacist_id: req.jwt.sub._id,
       total_cost_of_drugs: req.body.total_cost_of_drugs,
       doctor_charge: req.body.doctor_charge,
+      service_charge: req.body.service_charge,
     };
     const updatedPrescription = await Prescription.findByIdAndUpdate(
       id,
@@ -684,12 +689,7 @@ exports.getEarningsOfDoctor = async function (req, res) {
       {
         $match: {
           $and: [
-            { doctor_id: mongoose.Types.ObjectId(req.jwt.sub._id) },
-            {
-              medical_center_id: mongoose.Types.ObjectId(
-                req.jwt.sub.medical_center_id
-              ),
-            },
+            { doctor_id: mongoose.Types.ObjectId(req.params.id) },
             { is_completed: true },
           ],
         },
@@ -712,8 +712,7 @@ exports.getEarningsOfDoctor = async function (req, res) {
         {
           $match: {
             $and: [
-              { doctor_id: mongoose.Types.ObjectId(req.jwt.sub._id) },
-              {medical_center_id: mongoose.Types.ObjectId(req.jwt.sub.medical_center_id)},
+              { doctor_id: mongoose.Types.ObjectId(req.params.id) },
               { is_completed: true },
               { date: date.date }
             ],

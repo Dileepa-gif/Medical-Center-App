@@ -17,7 +17,7 @@ var medicalCenterSchema = new Schema({
   },
   it_service_charge: {
     type: Number,
-    default: 0,
+    default: 1000,
   },
   service_charge: {
     type: Number,

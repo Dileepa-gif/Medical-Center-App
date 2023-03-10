@@ -17,6 +17,6 @@ routes.put("/closePrescriptionsByPharmacist/:id", auth.authMiddleware(["PHARMACI
 
 routes.get("/getAllPrescriptionsOfUser", auth.authMiddleware(["OWNER", "DOCTOR", "ASSISTANT", "PHARMACIST"]), PrescriptionController.getAllPrescriptionsOfUser);
 
-routes.get("/getEarningsOfDoctor", auth.authMiddleware(["OWNER", "DOCTOR"]), PrescriptionController.getEarningsOfDoctor);
+routes.get("/getEarningsOfDoctor/:id",  PrescriptionController.getEarningsOfDoctor);
 
 module.exports = routes;
