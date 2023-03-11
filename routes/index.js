@@ -7,6 +7,7 @@ const appointmentRoute = require("./mainRoute/appointmentRoute/index");
 const drugListTemplateRoute = require("./mainRoute/drug_list_template/index");
 const prescriptionRoute = require("./mainRoute/prescriptionRoute/index");
 const patientRoute = require("./mainRoute/patientRoute/index");
+const paymentRoute = require("./mainRoute/paymentRoute/index");
 
 
 routes.use("/user", userRoutes);
@@ -16,5 +17,6 @@ routes.use("/appointment", appointmentRoute);
 routes.use("/drugListTemplate", drugListTemplateRoute);
 routes.use("/prescription", prescriptionRoute);
 routes.use("/patient", patientRoute);
+routes.use("/payment", paymentRoute);
 
 module.exports = routes;

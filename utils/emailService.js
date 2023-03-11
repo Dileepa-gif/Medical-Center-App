@@ -79,3 +79,24 @@ exports.employeePasswordSender = async function (user, random_password) {
     });
 };
 
+
+exports.paymentReminder = async function (owner, medical_center, savedPayment) {
+  transport
+    .sendMail({
+      from: senderEmail,
+      to: owner.email,
+      subject: "Reminder about the payment related to " + savedPayment.month,
+      html: `<h1><b>`+ medical_center.name +`</b></h1>
+
+            <p>You have to pay Rs.`+savedPayment.amount+` for the services received from us by the medical center for the `+savedPayment.month+`.</p>`,
+    })
+    .then(() => {
+      console.log("Email Sent to " + owner.email + " to remind the payment.");
+    })
+    .catch(() => {
+      console.log(
+        "Email Not Sent to " + owner.email + " to remind the payment."
+      );
+    });
+};
+
