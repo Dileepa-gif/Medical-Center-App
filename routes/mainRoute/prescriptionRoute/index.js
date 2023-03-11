@@ -19,4 +19,6 @@ routes.get("/getAllPrescriptionsOfUser", auth.authMiddleware(["OWNER", "DOCTOR",
 
 routes.get("/getEarningsOfDoctor/:id",  PrescriptionController.getEarningsOfDoctor);
 
+routes.get("/getSummeryForOwner", auth.authMiddleware(["OWNER"]), PrescriptionController.getSummeryForOwner);
+
 module.exports = routes;

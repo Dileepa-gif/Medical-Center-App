@@ -564,6 +564,7 @@ exports.closePrescriptionsByPharmacist = async function (req, res) {
       total_cost_of_drugs: req.body.total_cost_of_drugs,
       doctor_charge: req.body.doctor_charge,
       service_charge: req.body.service_charge,
+      is_drugs_released: true,
     };
     const updatedPrescription = await Prescription.findByIdAndUpdate(
       id,
@@ -736,6 +737,82 @@ exports.getEarningsOfDoctor = async function (req, res) {
         return res
           .status(200)
           .json({ code: 200, status: true, earnings: earnings, today_earnings:today_earnings });
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+
+exports.getSummeryForOwner = async function (req, res) {
+  try {
+    Prescription.aggregate([
+      {
+        $match: {
+          $and: [
+            {
+              $or: [
+              { date: { $regex: ".*" + date.month_arr[0] + ".*" } },
+              { date: { $regex: ".*" + date.month_arr[1] + ".*" } },
+              { date: { $regex: ".*" + date.month_arr[2] + ".*" } },
+              { date: { $regex: ".*" + date.month_arr[3] + ".*" } },
+              { date: { $regex: ".*" + date.month_arr[4] + ".*" } },
+              { date: { $regex: ".*" + date.month_arr[5] + ".*" } }
+            ],},
+            { medical_center_id: mongoose.Types.ObjectId(req.jwt.sub.medical_center_id) },
+            { is_completed: true },
+            { is_drugs_released: true },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: { medical_center_id: "$medical_center_id" },
+          monthly_total_treatment: { $count: {} },
+          monthly_total_earnings: { $sum: "$service_charge" },
+        },
+      },
+    ]).exec(function (error, six_month_summery) {
+      if (error) {
+        return res
+          .status(200)
+          .json({ code: 200, status: false, message: "Invalid Request!" });
+      }
+
+      Prescription.aggregate([
+        {
+          $match: {
+            $and: [
+              { date: date.date },
+              { medical_center_id: mongoose.Types.ObjectId(req.jwt.sub.medical_center_id) },
+              { is_completed: true },
+              { is_drugs_released: true },
+            ],
+          },
+        },
+        {
+          $group: {
+            _id: { medical_center_id: "$medical_center_id" },
+            today_total_treatment: { $count: {} },
+            today_total_summery: { $sum: "$service_charge" },
+          },
+        },
+        { $sort: { date: 1 } },
+      ]).exec(function (error, today_summery) {
+        if (error) {
+          return res
+            .status(200)
+            .json({ code: 200, status: false, message: "Invalid Request!" });
+        }
+
+        return res
+          .status(200)
+          .json({ code: 200, status: true, six_month_summery: six_month_summery, today_summery:today_summery });
       });
     });
   } catch (error) {
