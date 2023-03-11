@@ -9,11 +9,13 @@ const date = require("./utils/date");
 
 const socketIO = require("socket.io");
 const auth = require("./utils/auth");
+const Schedule = require("./utils/schedule");
 
 app.use(express.json());
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
 
 connectDB();
 
@@ -51,6 +53,7 @@ io.on("connection", (socket) => {
     if (tokenValidation.validation == true) {
       socket.join(tokenValidation.id);
       console.log(tokenValidation.id);
+      io.sockets.to(tokenValidation.id).emit(message, "Successfully joined");
     }
   });
   socket.on("disconnect", () => {
@@ -67,4 +70,7 @@ module.exports.Socket = Socket;
 server.listen(PORT, () => {
   console.log(`Listening on port: ${PORT}`);
 });
+
+Schedule.schedulePayment();
+
 

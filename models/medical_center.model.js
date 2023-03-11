@@ -1,6 +1,6 @@
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
-const User = require("../models/user.model");
+
 
 var medicalCenterSchema = new Schema({
   name: {
