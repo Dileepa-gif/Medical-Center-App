@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const http = require("http");
 const app = express();
+const date = require("./utils/date");
 
 const socketIO = require("socket.io");
 const auth = require("./utils/auth");
@@ -29,16 +30,18 @@ app.options("*", cors());
 const server = http.createServer(app);
 
 
-const io = socketIO(server, {
-  transports: ["polling"],
-  cors: {
-    cors: {
-      origin: "",
-      // origin: "http://localhost:3000",
-      methods: ["GET", "POST"],
-    },
-  },
-});
+const io = socketIO(server);
+
+// const io = socketIO(server, {
+//   transports: ["polling"],
+//   cors: {
+//     cors: {
+//       origin: "",
+//       // origin: "http://localhost:3000",
+//       methods: ["GET", "POST"],
+//     },
+//   },
+// });
 
 io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
@@ -64,3 +67,4 @@ module.exports.Socket = Socket;
 server.listen(PORT, () => {
   console.log(`Listening on port: ${PORT}`);
 });
+
