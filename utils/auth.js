@@ -70,22 +70,18 @@ const authMiddleware = (role_arr) => {
               }
             });
             if (temp) {
-              res
-                .status(200)
-                .json({
-                  code: 200,
-                  success: false,
-                  message: "You are not" + role_list,
-                });
-            }
-          } else {
-            res
-              .status(200)
-              .json({
+              res.status(200).json({
                 code: 200,
                 success: false,
-                message: "You must login again to visit this route",
+                message: "You are not" + role_list,
               });
+            }
+          } else {
+            res.status(200).json({
+              code: 200,
+              success: false,
+              message: "You must login again to visit this route",
+            });
           }
         } catch (error) {
           res
@@ -93,52 +89,48 @@ const authMiddleware = (role_arr) => {
             .json({ code: 200, success: false, message: error.message });
         }
       } else {
-        res
-          .status(200)
-          .json({
-            code: 200,
-            success: false,
-            message: "You must login to visit this route",
-          });
-      }
-    } else {
-      res
-        .status(200)
-        .json({
+        res.status(200).json({
           code: 200,
           success: false,
           message: "You must login to visit this route",
         });
+      }
+    } else {
+      res.status(200).json({
+        code: 200,
+        success: false,
+        message: "You must login to visit this route",
+      });
     }
   };
 };
 
-const tokenValidation = async (token, role_arr) => {
-  if (token) {
-    const tokenParts = token.split(" ");
-    if (
-      tokenParts[0] === "Bearer" &&
-      tokenParts[1].match(/\S+\.\S+\.\S+/) !== null
-    ) {
-      try {
+const tokenValidation = async (token) => {
+  try {
+    if (token) {
+      const tokenParts = token.split(" ");
+      if (
+        tokenParts[0] === "Bearer" &&
+        tokenParts[1].match(/\S+\.\S+\.\S+/) !== null
+      ) {
         const verification = jsonwebtoken.verify(
           tokenParts[1],
           process.env.ACCESS_TOKEN_SECRET
         );
         var user = await User.findById(verification.sub._id).select("+token");
         if (user.token === tokenParts[1]) {
-          return {validation : true, id : verification.sub._id};
+          return { validation: true, id: verification.sub._id };
         } else {
           return { validation: false, id: null };
         }
-      } catch (error) {
-        console.log(error);
+      } else {
         return { validation: false, id: null };
       }
     } else {
       return { validation: false, id: null };
     }
-  } else {
+  } catch (error) {
+    console.log(error);
     return { validation: false, id: null };
   }
 };

@@ -46,25 +46,35 @@ const io = socketIO(server);
 // });
 
 io.on("connection", (socket) => {
-  console.log(`User Connected: ${socket.id}`);
+  try {
+    console.log(`User Connected: ${socket.id}`);
+    console.error()
+    socket.on("login", async (token) => {
+      const tokenValidation = await auth.tokenValidation(token);
+      if (tokenValidation.validation == true) {
+        socket.join(tokenValidation.id);
+        console.log(tokenValidation.id);
+        io.sockets.to(tokenValidation.id).emit(message, "Successfully joined");
+      }
+    });
+    socket.on("disconnect", () => {
+      socket.disconnect();
+      console.log(`socket ${socket.id} disconnected`);
+    });
+  } catch (error) {
+    console.log(error);
+    io.sockets.emit(error, error.message);
+  }
 
-  socket.on("login", async (token) => {
-    const tokenValidation = await auth.tokenValidation(token);
-    if (tokenValidation.validation == true) {
-      socket.join(tokenValidation.id);
-      console.log(tokenValidation.id);
-      io.sockets.to(tokenValidation.id).emit(message, "Successfully joined");
-    }
-  });
-  socket.on("disconnect", () => {
-    socket.disconnect();
-    console.log(`socket ${socket.id} disconnected`);
-  });
 });
 
 const Socket = (receiver, event, data) => {
-  console.log(receiver)
-  io.sockets.to(receiver).emit(event, data);
+  try {
+    io.sockets.to(receiver).emit(event, data);
+  } catch (error) {
+    console.log(error);
+    io.sockets.emit(error, error.message);
+  }
 };
 module.exports.Socket = Socket;
 server.listen(PORT, () => {
