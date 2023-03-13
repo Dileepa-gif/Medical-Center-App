@@ -46,31 +46,31 @@ exports.getPaymentsByMedicalCenter = async function (req, res) {
   }
 };
 
-exports.completePayment = async function (req, res) {
-  try {
-    let payment = {
-      is_paid: true,
-      paid_date: date.date,
-      user_id: req.jwt.sub._id,
-    };
-    const savedPayments = Payment.updateMany({
-      $and: [
-        {medical_center_id : req.jwt.sub.medical_center_id},
-        { is_paid: false }
-      ],
-    },payment);
-    console.log(savedPayments)
-    return res.status(200).json({
-      code: 200,
-      success: true,
-      message: "Payments are completed successfully",
-      data: savedPayments,
-    });
-  } catch (error) {
-    res.status(500).send({
-      code: 500,
-      success: false,
-      message: error.message || "Internal Server Error",
-    });
-  }
-};
+// exports.completePayment = async function (req, res) {
+//   try {
+//     let payment = {
+//       is_paid: true,
+//       paid_date: date.date,
+//       user_id: req.jwt.sub._id,
+//     };
+//     const savedPayments = Payment.updateMany({
+//       $and: [
+//         {medical_center_id : req.jwt.sub.medical_center_id},
+//         { is_paid: false }
+//       ],
+//     },payment);
+//     console.log(savedPayments)
+//     return res.status(200).json({
+//       code: 200,
+//       success: true,
+//       message: "Payments are completed successfully",
+//       data: savedPayments,
+//     });
+//   } catch (error) {
+//     res.status(500).send({
+//       code: 500,
+//       success: false,
+//       message: error.message || "Internal Server Error",
+//     });
+//   }
+// };
