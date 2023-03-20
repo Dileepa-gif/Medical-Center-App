@@ -3,12 +3,13 @@ const User = require("../models/user.model");
 const MedicalCenter = require("../models/medical_center.model");
 const Payment = require("../models/payment.model");
 const date = require("../utils/date");
+require("dotenv").config({ path: "../.env" });
 
 const {paymentReminder} = require("./emailService");
 
 exports.schedulePayment = async function () {
   const schedulePayment = schedule.scheduleJob(
-    "59 55 15 * * *",
+    process.env.SCHEDULE_PATTERN || "1 0 0 25 * *",
     async function () {
       const medical_centers = await MedicalCenter.find();
       medical_centers.forEach(async (medical_center) => {
