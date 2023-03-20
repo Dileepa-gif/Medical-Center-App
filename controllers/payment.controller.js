@@ -8,7 +8,11 @@ exports.getPaymentsByMedicalCenter = async function (req, res) {
       {
         $match: {
           $and: [
-            { medical_center_id: mongoose.Types.ObjectId(req.jwt.sub.medical_center_id) },
+            {
+              medical_center_id: mongoose.Types.ObjectId(
+                req.jwt.sub.medical_center_id
+              ),
+            },
             { is_paid: false },
           ],
         },
@@ -28,14 +32,18 @@ exports.getPaymentsByMedicalCenter = async function (req, res) {
 
       const payments = await Payment.find({
         $and: [{ medical_center_id: req.jwt.sub.medical_center_id }],
-      })
-        .populate({
-          path: "user_id",
-          model: "User",
-        });
+      }).populate({
+        path: "user_id",
+        model: "User",
+      });
       return res
-      .status(200)
-      .json({ code: 200, status: true, total_payment : total_payment, payments : payments });
+        .status(200)
+        .json({
+          code: 200,
+          status: true,
+          total_payment: total_payment,
+          payments: payments,
+        });
     });
   } catch (error) {
     res.status(500).send({
@@ -46,31 +54,33 @@ exports.getPaymentsByMedicalCenter = async function (req, res) {
   }
 };
 
-// exports.completePayment = async function (req, res) {
-//   try {
-//     let payment = {
-//       is_paid: true,
-//       paid_date: date.date,
-//       user_id: req.jwt.sub._id,
-//     };
-//     const savedPayments = Payment.updateMany({
-//       $and: [
-//         {medical_center_id : req.jwt.sub.medical_center_id},
-//         { is_paid: false }
-//       ],
-//     },payment);
-//     console.log(savedPayments)
-//     return res.status(200).json({
-//       code: 200,
-//       success: true,
-//       message: "Payments are completed successfully",
-//       data: savedPayments,
-//     });
-//   } catch (error) {
-//     res.status(500).send({
-//       code: 500,
-//       success: false,
-//       message: error.message || "Internal Server Error",
-//     });
-//   }
-// };
+exports.completePayment = async function (req, res) {
+  try {
+    let payment = {
+      is_paid: true,
+      paid_date: date.date,
+      user_id: req.jwt.sub._id,
+    };
+    const savedPayments = await Payment.updateMany(
+      {
+        $and: [
+          { medical_center_id: req.jwt.sub.medical_center_id },
+          { is_paid: false },
+        ],
+      },
+      payment
+    );
+    return res.status(200).json({
+      code: 200,
+      success: true,
+      message: "Payments are completed successfully",
+      modifiedCount: savedPayments.modifiedCount || 0,
+    });
+  } catch (error) {
+    res.status(500).send({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
