@@ -1,5 +1,7 @@
 const routes = require('express').Router();
 
+
+const adminRoute = require("./mainRoute/adminRoute/index");
 const userRoutes = require("./mainRoute/userRoute/index");
 const medicalCenterRoute = require("./mainRoute/medicalCenterRoute/index");
 const drugRoute = require("./mainRoute/drugRoute/index");
@@ -10,6 +12,7 @@ const patientRoute = require("./mainRoute/patientRoute/index");
 const paymentRoute = require("./mainRoute/paymentRoute/index");
 
 
+routes.use("/admin", adminRoute);
 routes.use("/user", userRoutes);
 routes.use("/medicalCenter", medicalCenterRoute);
 routes.use("/drug", drugRoute);
