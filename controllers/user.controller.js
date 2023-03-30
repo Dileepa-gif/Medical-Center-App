@@ -197,8 +197,7 @@ exports.compleatOwnerRegistration = async function (req, res) {
     var medical_center = new MedicalCenter({
       name: req.body.name,
       address: req.body.address,
-      user_id: req.jwt.sub._id,
-      registration_number: req.body.registration_number,
+      user_id: req.jwt.sub._id
     });
     var medical_center = await medical_center.save();
     var user = {

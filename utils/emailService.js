@@ -11,7 +11,27 @@ const transport = nodemailer.createTransport({
   }
 });
 
+exports.adminPasswordSender = async function (admin, random_password) {
+  transport
+    .sendMail({
+      from: senderEmail,
+      to: admin.email,
+      subject: "Please use this password and email to login your account",
+      html: `<h1><b>Please use this password and email to login your account</b></h1>
 
+                <h5>Let's use this password and email to login your account</h5><br>
+                <p><b>Email : </b>${admin.email}</p>
+                <p><b>Password : </b>${random_password}</p><br>`,
+    })
+    .then(() => {
+      console.log("Email Sent to " + admin.email + " to reset admin password.");
+    })
+    .catch(() => {
+      console.log(
+        "Email Not Sent to " + admin.email + " to reset admin password."
+      );
+    });
+};
 
 exports.ownerVerificationPinSender = async function (user) {
   transport

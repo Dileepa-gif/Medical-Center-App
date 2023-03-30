@@ -2,6 +2,7 @@ const DrugListTemplate = require("../models/drug_list_template.model");
 const Prescription = require("../models/prescription.model");
 const User = require("../models/user.model");
 const Patient = require("../models/patient.model");
+const MedicalCenter = require("../models/medical_center.model");
 const mongoose = require("mongoose");
 const date = require("../utils/date");
 const Socket = require("../server");
@@ -23,6 +24,13 @@ exports.createByDoctor = async function (req, res) {
       });
 
       const savedPrescription = await prescription.save();
+      var medical_center = await MedicalCenter.findById(
+        req.jwt.sub.medical_center_id
+      );
+
+      medical_center.prescription_id.push(savedPrescription._id);
+      medical_center.save();
+
       drugsNotReleasedPrescriptions(savedPrescription.medical_center_id);
       res.status(200).json({
         code: 200,
@@ -49,6 +57,13 @@ exports.createByDoctor = async function (req, res) {
       });
 
       const savedPrescription = await prescription.save();
+      var medical_center = await MedicalCenter.findById(
+        req.jwt.sub.medical_center_id
+      );
+
+      medical_center.prescription_id.push(savedPrescription._id);
+      medical_center.save();
+
       drugsNotReleasedPrescriptions(savedPrescription.medical_center_id);
       res.status(200).json({
         code: 200,
@@ -86,6 +101,13 @@ exports.createByDoctorUsingTemplate = async function (req, res) {
       });
 
       const savedPrescription = await prescription.save();
+      var medical_center = await MedicalCenter.findById(
+        req.jwt.sub.medical_center_id
+      );
+
+      medical_center.prescription_id.push(savedPrescription._id);
+      medical_center.save();
+
       drugsNotReleasedPrescriptions(savedPrescription.medical_center_id);
       res.status(200).json({
         code: 200,
@@ -115,6 +137,13 @@ exports.createByDoctorUsingTemplate = async function (req, res) {
       });
 
       const savedPrescription = await prescription.save();
+      var medical_center = await MedicalCenter.findById(
+        req.jwt.sub.medical_center_id
+      );
+
+      medical_center.prescription_id.push(savedPrescription._id);
+      medical_center.save();
+
       drugsNotReleasedPrescriptions(savedPrescription.medical_center_id);
       res.status(200).json({
         code: 200,
@@ -148,6 +177,13 @@ exports.createByAssistance = async function (req, res) {
       });
 
       const savedPrescription = await prescription.save();
+      var medical_center = await MedicalCenter.findById(
+        req.jwt.sub.medical_center_id
+      );
+
+      medical_center.prescription_id.push(savedPrescription._id);
+      medical_center.save();
+
       const received_prescriptions = await Prescription.find({
         $and: [
           { doctor_id: savedPrescription.doctor_id },
