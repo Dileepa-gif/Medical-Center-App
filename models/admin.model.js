@@ -8,6 +8,10 @@ const adminSchema = new Schema({
     type: String,
     required: true,
   },
+  status: {
+    type: Boolean,
+    default : true,
+  },
   first_name: {
     type: String,
     required: true,

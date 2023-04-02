@@ -7,26 +7,15 @@ routes.post("/createAdmin", auth.authMiddlewareForAdmin(["SUPERADMIN"]), AdminCo
 routes.post("/loginAdmin", AdminController.loginAdmin);
 routes.get("/logoutAdmin",auth.authMiddlewareForAdmin(["SUPERADMIN", "ADMIN"]), AdminController.logoutAdmin);
 routes.get("/getAllMedicalCenters",auth.authMiddlewareForAdmin(["SUPERADMIN", "ADMIN"]), AdminController.getAllMedicalCenters);
+routes.get("/getAllAdmin",auth.authMiddlewareForAdmin(["SUPERADMIN", "ADMIN"]), AdminController.getAllAdmin);
+routes.put("/changePassword/:id",auth.authMiddlewareForAdmin(["SUPERADMIN", "ADMIN"]), AdminController.changePassword);
+routes.get("/getNewRegistrations",auth.authMiddlewareForAdmin(["SUPERADMIN", "ADMIN"]), AdminController.getNewRegistrations);
+routes.put("/registrationConfirmation/:id",auth.authMiddlewareForAdmin(["SUPERADMIN", "ADMIN"]), AdminController.registrationConfirmation);
+routes.get("/activationOfAdmin/:id",auth.authMiddlewareForAdmin(["SUPERADMIN"]), AdminController.activationOfAdmin);
+
 routes.get("/getMedicalCenterById/:id",auth.authMiddlewareForAdmin(["SUPERADMIN", "ADMIN"]), AdminController.getMedicalCenterById);
-// routes.post("/verifyOwner",auth.authMiddleware(["OWNER"]), UserController.verifyOwner);
-// routes.post("/compleatOwnerRegistration", auth.authMiddleware(["OWNER"]), UserController.compleatOwnerRegistration);
-
-// routes.post("/loginUser", UserController.loginUser);
-// routes.get("/logoutUser",auth.authMiddleware(["OWNER", "DOCTOR"]), UserController.logoutUser);
-// routes.get("/validateToken",auth.authMiddleware(["OWNER"]), UserController.validateToken);
-// routes.post("/forgotPassword", UserController.forgotPassword);
-// routes.post("/resetForgotPassword", UserController.resetForgotPassword);
-// routes.post("/resetPassword",auth.authMiddleware(["OWNER"]), UserController.resetPassword);
-
-// routes.post("/addEmployee",auth.authMiddleware(["OWNER"]), UserController.addEmployee);
-// routes.get("/getUserById/:id", UserController.getUserById);
-// routes.get("/getAllUsers", UserController.getAllUsers);
-// routes.get("/getUsersByMedicalCenter", auth.authMiddleware(["OWNER"]), UserController.getUsersByMedicalCenter);
-
-// routes.put("/update/:id", UserController.update);
-// routes.delete("/delete/:id", UserController.delete);
-// routes.get("/getAllDoctorsByMedicalCenterId/:id", UserController.getAllDoctorsByMedicalCenterId);
-
+routes.put("/updateMedicalCenter/:id",auth.authMiddlewareForAdmin(["SUPERADMIN", "ADMIN"]), AdminController.updateMedicalCenter);
+routes.get("/getMedicalCenterPaymentHistory/:id",auth.authMiddlewareForAdmin(["SUPERADMIN", "ADMIN"]), AdminController.getMedicalCenterPaymentHistory);
 
 
 
