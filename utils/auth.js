@@ -1,6 +1,7 @@
 const jsonwebtoken = require("jsonwebtoken");
 const User = require("../models/user.model");
 const Admin = require("../models/admin.model");
+const MedicalCenter = require("../models/medical_center.model");
 
 function issueJWT(user) {
   const expiresIn = "4w";
@@ -97,12 +98,26 @@ const authMiddleware = (role_arr) => {
           if (user.token === tokenParts[1]) {
             var temp = true;
             var role_list = "";
-            role_arr.forEach((role) => {
+            role_arr.forEach(async (role) => {
               role_list = role_list + ", " + role;
               if (verification.sub.role === role) {
                 req.jwt = verification;
                 temp = false;
-                next();
+
+                if(user.is_completed){
+                  var medical_center = await MedicalCenter.findById(user.medical_center_id);
+                  if(medical_center.is_activated){
+                    next();
+                  }else{
+                    res.status(200).json({
+                      code: 200,
+                      success: false,
+                      message: "This medical center account not activated",
+                    });
+                  }
+                }else{
+                  next();
+                }
               }
             });
             if (temp) {
@@ -164,7 +179,17 @@ const authMiddlewareForAdmin = (role_arr) => {
               if (verification.sub.role === role) {
                 req.jwt = verification;
                 temp = false;
-                next();
+
+                if(admin.status){
+                  next();
+                }else{
+                  res.status(200).json({
+                    code: 200,
+                    success: false,
+                    message: "Your admin account is currently deactivated",
+                  });
+                }
+                
               }
             });
             if (temp) {
