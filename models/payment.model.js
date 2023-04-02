@@ -3,6 +3,12 @@ var Schema = mongoose.Schema;
 
 
 var PaymentSchema = new Schema({
+  payment_id: {
+    type: String,
+  },
+  order_id: {
+    type: String,
+  },
   is_paid: {
     type: Boolean,
     default: false,
@@ -17,6 +23,13 @@ var PaymentSchema = new Schema({
   },
   paid_date: {
     type: String,
+  },
+  status: {
+    type: String,
+  },
+  currency: {
+    type: String,
+    default: "LKR",
   },
   medical_center_id: {
     type: Schema.Types.ObjectId,

@@ -1,5 +1,6 @@
 var mongoose = require("mongoose");
 const Payment = require("../models/payment.model");
+const User = require("../models/user.model");
 var Schema = mongoose.Schema;
 
 
@@ -37,36 +38,68 @@ var medicalCenterSchema = new Schema({
       ref: "users",
     },
   ],
+  patient_id: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "patients",
+    },
+  ],
 });
 
-// medicalCenterSchema.virtual('total_payment_for_IT_service ').get(function () {
-//   Payment.aggregate([
-//     {
-//       $match: {
-//         $and: [
-//           {
-//             medical_center_id: mongoose.Types.ObjectId(this.medical_center_id),
-//           },
-//           { is_paid: true },
-//         ],
-//       },
-//     },
-//     {
-//       $group: {
-//         _id: { medical_center_id: "$medical_center_id" },
-//         total_payment: { $sum: "$amount" },
-//       },
-//     },
-//   ]).exec(async function (error, total_payment) {
-//     if (error) {
-//       return 0;
-//     }
-//     return total_payment;
-//   });
-// });
+medicalCenterSchema.virtual('completed_payment_for_IT_service').get(async function () {
+  const completed_payment_for_IT_service = await Payment.aggregate([
+    {
+      $match: {
+        $and: [
+          {
+            medical_center_id: mongoose.Types.ObjectId(
+              this.id
+            ),
+          },
+          { is_paid: true },
+        ],
+      },
+    },
+    {
+      $group: {
+        _id: { medical_center_id: "$medical_center_id" },
+        total_payment: { $sum: "$amount" },
+      },
+    },
+  ]).exec();
+  if(completed_payment_for_IT_service.length > 0){
+    return completed_payment_for_IT_service[0].total_payment
+  }else{
+    return 0;
+  }
+});
 
-medicalCenterSchema.virtual('blockIdLists').get(function () {
-  return this.user_id.length;
+medicalCenterSchema.virtual('pending_payment_for_IT_service').get(async function () {
+  const pending_payment_for_IT_service = await Payment.aggregate([
+    {
+      $match: {
+        $and: [
+          {
+            medical_center_id: mongoose.Types.ObjectId(
+              this.id
+            ),
+          },
+          { is_paid: false },
+        ],
+      },
+    },
+    {
+      $group: {
+        _id: { medical_center_id: "$medical_center_id" },
+        total_payment: { $sum: "$amount" },
+      },
+    },
+  ]).exec();
+  if(pending_payment_for_IT_service.length > 0){
+    return pending_payment_for_IT_service[0].total_payment
+  }else{
+    return 0;
+  }
 });
 
 medicalCenterSchema.pre("save", async function (next) {

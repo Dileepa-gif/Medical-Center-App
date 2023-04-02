@@ -57,6 +57,9 @@ exports.getPaymentsByMedicalCenter = async function (req, res) {
 exports.completePayment = async function (req, res) {
   try {
     let payment = {
+      payment_id: req.body.payment_id,
+      order_id: req.body.order_id,
+      status: req.body.status,
       is_paid: true,
       paid_date: date.date,
       user_id: req.jwt.sub._id,

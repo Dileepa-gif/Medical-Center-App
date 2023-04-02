@@ -27,6 +27,9 @@ exports.getMedicalCenterById = async function (req, res) {
           },
         },
         {
+          $unwind: '$owner_details' 
+        },
+        {
           $match: { "owner_details.role": "OWNER" },
         },
         {
@@ -66,6 +69,9 @@ exports.getAllMedicalCenters = async function (req, res) {
           foreignField: "_id",
           as: "owner_details",
         },
+      },
+      {
+        $unwind: '$owner_details' 
       },
       {
         $match: { "owner_details.role": "OWNER" },
