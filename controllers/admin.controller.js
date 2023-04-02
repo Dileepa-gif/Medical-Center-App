@@ -1,9 +1,12 @@
 const Admin = require("../models/admin.model");
 const MedicalCenter = require("../models/medical_center.model");
+const Prescription = require("../models/prescription.model");
+const Drug = require("../models/drug.model");
+const User = require("../models/user.model");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
-const {adminPasswordSender,} = require("../utils/emailService");
+const { adminPasswordSender } = require("../utils/emailService");
 
 const userRole = require("../utils/userRoles");
 const auth = require("../utils/auth");
@@ -13,13 +16,11 @@ exports.createSuperAdmin = async function (req, res) {
   try {
     const emailExist = await Admin.findOne({ email: req.body.email });
     if (emailExist)
-      return res
-        .status(200)
-        .json({
-          code: 200,
-          success: false,
-          message: "Email already available",
-        });
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: "Email already available",
+      });
 
     const admin = new Admin({
       role: userRole.SUPERADMIN,
@@ -27,7 +28,6 @@ exports.createSuperAdmin = async function (req, res) {
       last_name: req.body.last_name,
       email: req.body.email,
       password: req.body.password,
-      
     });
 
     var super_admin = await admin.save();
@@ -42,7 +42,11 @@ exports.createSuperAdmin = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
   }
 };
 
@@ -51,13 +55,11 @@ exports.createAdmin = async function (req, res) {
   try {
     const emailExist = await Admin.findOne({ email: req.body.email });
     if (emailExist)
-      return res
-        .status(200)
-        .json({
-          code: 200,
-          success: false,
-          message: "Email already available",
-        });
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: "Email already available",
+      });
     var random_password = Math.random().toString(36).slice(-8);
     const admin = new Admin({
       role: userRole.ADMIN,
@@ -80,7 +82,11 @@ exports.createAdmin = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
   }
 };
 
@@ -121,27 +127,37 @@ exports.loginAdmin = async function (req, res) {
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
   }
 };
 
 exports.logoutAdmin = async function (req, res) {
   try {
-
     let admin = await Admin.findById(req.jwt.sub._id);
     if (!admin) {
       return res
         .status(200)
-        .json({ code: 200, success: false, message: `No admin with id: ${id}` });
+        .json({
+          code: 200,
+          success: false,
+          message: `No admin with id: ${id}`,
+        });
     }
-      const updatedAdmin = await Admin.findByIdAndUpdate(req.jwt.sub._id, {$unset : {token :1}}, {new: true}).select("+token");
-      return res.status(200).json({
-        code: 200,
-        success: true,
-        message: "Admin is logout successfully",
-        data: updatedAdmin,
-      });
-    
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      req.jwt.sub._id,
+      { $unset: { token: 1 } },
+      { new: true }
+    ).select("+token");
+    return res.status(200).json({
+      code: 200,
+      success: true,
+      message: "Admin is logout successfully",
+      data: updatedAdmin,
+    });
   } catch (error) {
     res.status(500).send({
       code: 500,
@@ -150,7 +166,6 @@ exports.logoutAdmin = async function (req, res) {
     });
   }
 };
-
 
 exports.getAllMedicalCenters = async function (req, res) {
   try {
@@ -164,37 +179,106 @@ exports.getAllMedicalCenters = async function (req, res) {
         },
       },
       {
-        $match: { "owner_details.role": "OWNER" },
+        $unwind: "$owner_details",
       },
       {
-        $lookup: {
-          from: "prescriptions",
-          localField: "prescription_id",
-          foreignField: "_id",
-          as: "prescription_details",
-        },
+        $match: { "owner_details.role": "OWNER" },
       },
-      // {
-      //   $group: {
-      //     _id: { medical_center_id: "$medical_center_id" },
-      //     total_payment: { $sum: "$amount" },
-      //   },
-      // },
-    ]).exec(function (error, medical_centers) {
+    ]).exec(async function (error, medical_centers) {
       if (error) {
+        console.log(error);
         return res
           .status(200)
           .json({ code: 200, status: false, message: "Invalid Request!" });
       }
+      var medical_centers_arr = [];
+      var bar = new Promise((resolve, reject) => {
 
-      return res
+        medical_centers.forEach(async (medical_center) => {
+          const medical_center_ = await MedicalCenter.findById(medical_center._id);
+          medical_centers_arr.push({ ...medical_center, 
+            completed_payment_for_IT_service : await medical_center_.completed_payment_for_IT_service,
+            pending_payment_for_IT_service : await medical_center_.pending_payment_for_IT_service });
+          resolve();
+        });
+      });
+
+      bar.then(() => {
+        return res
         .status(200)
-        .json({ code: 200, status: true, data: medical_centers });
+        .json({ code: 200, status: true, data: medical_centers_arr });
+      });
+
     });
   } catch (error) {
     res
       .status(500)
-      .json({ code: 500, success: false, message: error.message || "Internal Server Error" });
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+  }
+};
+
+
+
+exports.getMedicalCenterById = async function (req, res) {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `Id is not valid`,
+      });
+
+    const exits_medical_center = await MedicalCenter.findById(req.params.id);
+    if (exits_medical_center) {
+      MedicalCenter.aggregate([
+        {
+          $lookup: {
+            from: "users",
+            localField: "user_id",
+            foreignField: "_id",
+            as: "owner_details",
+          },
+        },
+        {
+          $unwind: '$owner_details' 
+        },
+        {
+          $match: { "owner_details.role" : "OWNER" },
+        },
+        {
+          $match: { _id: mongoose.Types.ObjectId(req.params.id) },
+        },
+      ]).exec(async function (error, medical_center) {
+        if (error) {
+          return res
+            .status(200)
+            .json({ code: 200, status: false, message: "Invalid Request!" });
+        }
+        const employees = await User.find({medical_center_id : medical_center[0]._id});
+        const drugs_library_count = await Drug.count({medical_center_id : medical_center[0]._id}) || 0;
+        const prescription_count = await Prescription.count({medical_center_id : medical_center[0]._id}) || 0;
+        const completed_payment_for_IT_service = await exits_medical_center.completed_payment_for_IT_service || 0;
+        const pending_payment_for_IT_service = await exits_medical_center.pending_payment_for_IT_service || 0;
+        const patient_subscription = await exits_medical_center.patient_id.length || 0;
+        return res.status(200).json({ code: 200, status: true, data : 
+          {...medical_center, employees : employees, drugs_library_count : drugs_library_count, prescription_count : prescription_count, completed_payment_for_IT_service : completed_payment_for_IT_service, pending_payment_for_IT_service : pending_payment_for_IT_service, patient_subscription : patient_subscription} });
+      });
+    } else {
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: "No medical center not found",
+      });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ code: 500, success: false, message: 
+ error.message || "Internal Server Error" });
   }
 };
 

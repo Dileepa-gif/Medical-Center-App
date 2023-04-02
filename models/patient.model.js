@@ -20,7 +20,13 @@ const patientSchema = new Schema({
   phone_number: {
     type: String,
     required: true,
-  }
+  },
+  medical_center_id: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "medicalcenters",
+    },
+  ],
 });
 
 const Patient = mongoose.model("Patient", patientSchema);

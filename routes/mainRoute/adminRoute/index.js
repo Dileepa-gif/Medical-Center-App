@@ -7,6 +7,7 @@ routes.post("/createAdmin", auth.authMiddlewareForAdmin(["SUPERADMIN"]), AdminCo
 routes.post("/loginAdmin", AdminController.loginAdmin);
 routes.get("/logoutAdmin",auth.authMiddlewareForAdmin(["SUPERADMIN", "ADMIN"]), AdminController.logoutAdmin);
 routes.get("/getAllMedicalCenters",auth.authMiddlewareForAdmin(["SUPERADMIN", "ADMIN"]), AdminController.getAllMedicalCenters);
+routes.get("/getMedicalCenterById/:id",auth.authMiddlewareForAdmin(["SUPERADMIN", "ADMIN"]), AdminController.getMedicalCenterById);
 // routes.post("/verifyOwner",auth.authMiddleware(["OWNER"]), UserController.verifyOwner);
 // routes.post("/compleatOwnerRegistration", auth.authMiddleware(["OWNER"]), UserController.compleatOwnerRegistration);
 
