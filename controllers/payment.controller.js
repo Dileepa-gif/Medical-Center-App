@@ -60,6 +60,7 @@ exports.completePayment = async function (req, res) {
       payment_id: req.body.payment_id,
       order_id: req.body.order_id,
       status: req.body.status,
+      method: req.body.method,
       is_paid: true,
       paid_date: date.date,
       user_id: req.jwt.sub._id,

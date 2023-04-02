@@ -3,6 +3,7 @@ const MedicalCenter = require("../models/medical_center.model");
 const Prescription = require("../models/prescription.model");
 const Drug = require("../models/drug.model");
 const User = require("../models/user.model");
+const Payment = require("../models/payment.model");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
@@ -167,6 +168,176 @@ exports.logoutAdmin = async function (req, res) {
   }
 };
 
+exports.changePassword = async function (req, res) {
+  try {
+    const admin = await Admin.findById(req.params.id).select(
+      "+password"
+    );
+    if (!admin)
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: "Admin not found" });
+
+    const validPassword = await bcrypt.compare(
+      req.body.old_password,
+      admin.password
+    );
+
+    if (!validPassword)
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: "Invalid Password" });
+
+    const salt = await bcrypt.genSalt(10);
+    const password = await bcrypt.hash(req.body.new_password, salt);
+    const updatedMedicalCenter = await Admin.findByIdAndUpdate(
+      req.params.id,
+      { password : password },
+      { new: true }
+    );
+
+    res.status(200).json({
+      code: 200,
+      success: true,
+      message: "Password is changed in successfully",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+  }
+};
+
+
+exports.getAllAdmin = async function (req, res) {
+  try {
+    const admins = await Admin.find();
+      return res.status(200).json({
+        code: 200,
+        success: true,
+        admins : admins,
+      });
+  } catch (error) {
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+
+exports.getNewRegistrations = async function (req, res) {
+  try {
+
+    const new_registrations = await MedicalCenter.find({
+      $and: [
+        { is_activated: false }
+      ],
+    });
+    return res.status(200).json({
+      code: 200, 
+      status: true, 
+      data : new_registrations
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+  }
+};
+
+
+exports.registrationConfirmation = async function (req, res) {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+    return res.status(200).json({
+      code: 200,
+      success: false,
+      message: `Id is not valid`,
+    });
+
+    let medical_center = await MedicalCenter.findById(req.params.id);
+    if (!medical_center) {
+      return res
+        .status(200)
+        .json({
+          code: 200,
+          success: false,
+          message: `No medical center with id: ${id}`,
+        });
+    }
+    const updatedMedicalCenter = await MedicalCenter.findByIdAndUpdate(
+      req.params.id,
+      { is_production_mode : req.body.is_production_mode, it_service_charge : req.body.it_service_charge },
+      { new: true }
+    );
+    return res.status(200).json({
+      code: 200,
+      success: true,
+      message: "Medical center is confirmed successfully",
+      data: updatedMedicalCenter,
+    });
+  } catch (error) {
+    res.status(500).send({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+
+exports.activationOfAdmin = async function (req, res) {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+    return res.status(200).json({
+      code: 200,
+      success: false,
+      message: `Id is not valid`,
+    });
+
+    const admin = await Admin.findById(req.params.id);
+    if (!admin || admin.role == userRole.SUPERADMIN) {
+      return res
+        .status(200)
+        .json({
+          code: 200,
+          success: false,
+          message: `There are no normal admin with id: ${req.params.id}`,
+        });
+    }
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      req.params.id,
+      { status : admin.status ? false : true },
+      { new: true }
+    );
+    return res.status(200).json({
+      code: 200,
+      success: true,
+      message: "Medical center is confirmed successfully",
+      data: updatedAdmin,
+    });
+
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+  }
+};
+
 exports.getAllMedicalCenters = async function (req, res) {
   try {
     MedicalCenter.aggregate([
@@ -220,7 +391,6 @@ exports.getAllMedicalCenters = async function (req, res) {
       });
   }
 };
-
 
 
 exports.getMedicalCenterById = async function (req, res) {
@@ -281,6 +451,86 @@ exports.getMedicalCenterById = async function (req, res) {
  error.message || "Internal Server Error" });
   }
 };
+
+
+exports.updateMedicalCenter = async function (req, res) {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+    return res.status(200).json({
+      code: 200,
+      success: false,
+      message: `Id is not valid`,
+    });
+
+    let medical_center = await MedicalCenter.findById(req.params.id);
+    if (!medical_center) {
+      return res
+        .status(200)
+        .json({
+          code: 200,
+          success: false,
+          message: `No medical center with id: ${id}`,
+        });
+    }
+    const updatedMedicalCenter = await MedicalCenter.findByIdAndUpdate(
+      req.params.id,
+      { is_production_mode : req.body.is_production_mode, is_activated : req.body.is_activated, it_service_charge : req.body.it_service_charge },
+      { new: true }
+    );
+    return res.status(200).json({
+      code: 200,
+      success: true,
+      message: "Medical center is updated successfully",
+      data: updatedMedicalCenter,
+    });
+  } catch (error) {
+    res.status(500).send({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+
+exports.getMedicalCenterPaymentHistory = async function (req, res) {
+  try {
+
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+    return res.status(200).json({
+      code: 200,
+      success: false,
+      message: `Id is not valid`,
+    });
+
+    const payment_history = await Payment.find({
+      $and: [
+        { is_paid: true },
+        { medical_center_id: req.params.id },
+      ],
+    });
+    return res.status(200).json({
+      code: 200, 
+      status: true, 
+      data : payment_history
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        code: 500,
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+  }
+};
+
+
+
+
+
+
 
 /*
 exports.verifyOwner = async function (req, res) {

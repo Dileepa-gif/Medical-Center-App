@@ -31,6 +31,9 @@ var PaymentSchema = new Schema({
     type: String,
     default: "LKR",
   },
+  method: {
+    type: String,
+  },
   medical_center_id: {
     type: Schema.Types.ObjectId,
     ref: "medicalcenters",
