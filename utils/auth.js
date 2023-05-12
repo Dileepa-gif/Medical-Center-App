@@ -95,7 +95,7 @@ const authMiddleware = (role_arr) => {
             process.env.ACCESS_TOKEN_SECRET
           );
           var user = await User.findById(verification.sub._id).select("+token");
-          if (user.token === tokenParts[1]) {
+          if ((user.token === tokenParts[1]) && (user.is_activated === true) ) {
             var temp = true;
             var role_list = "";
             role_arr.forEach(async (role) => {
@@ -131,7 +131,7 @@ const authMiddleware = (role_arr) => {
             res.status(200).json({
               code: 200,
               success: false,
-              message: "You must login again to visit this route",
+              message: "You must login again to visit this route or your account was deactivated",
             });
           }
         } catch (error) {

@@ -5,7 +5,7 @@ const PrescriptionController = require("../../../controllers/prescription.contro
 
 routes.post("/createByDoctor", auth.authMiddleware(["OWNER", "DOCTOR"]), PrescriptionController.createByDoctor);
 routes.post("/createByDoctorUsingTemplate", auth.authMiddleware(["OWNER", "DOCTOR"]), PrescriptionController.createByDoctorUsingTemplate);
-routes.post("/createByAssistance", auth.authMiddleware(["ASSISTANT"]), PrescriptionController.createByAssistance);
+routes.post("/createByAssistance", auth.authMiddleware(["ASSISTANT", "PHARMACIST"]), PrescriptionController.createByAssistance);
 
 routes.get("/getReceivedPrescriptionsForDoctor", auth.authMiddleware(["OWNER", "DOCTOR"]), PrescriptionController.getReceivedPrescriptionsForDoctor);
 routes.get("/getPrescriptionById/:id", PrescriptionController.getPrescriptionById);
