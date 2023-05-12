@@ -106,7 +106,7 @@ medicalCenterSchema.pre("save", async function (next) {
   if(newest_medical_central){
     this.registration_number = Number(newest_medical_central.registration_number) + 1;
   }else{
-    this.registration_number = "1000";
+    this.registration_number = "1001";
   }
   next();
 });

@@ -9,6 +9,11 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  is_activated: {
+    type: Boolean,
+    default: true,
+    required: true,
+  },
   first_name: {
     type: String,
   },

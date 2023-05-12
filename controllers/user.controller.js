@@ -553,3 +553,46 @@ exports.getAllDoctorsByMedicalCenterId = async function (req, res) {
   }
 };
 
+exports.activateDeactivate = async function (req, res) {
+  try {
+
+    const id = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No user with id: ${id}`,
+      });
+    let user = await User.findById(id);
+    if (!user) {
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: `No user with id: ${id}` });
+    }
+
+    if (user.role != userRole.OWNER) {
+      return res
+        .status(200)
+        .json({ code: 200, success: false, message: `You are a Owner` });
+    }
+    
+    if(user.is_activated == true){
+      user.is_activated = false;
+    }else{
+      user.is_activated = true;
+    }
+    await user.save();
+
+    return res.status(200).json({
+      code: 200,
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).send({
+      code: 500,
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
