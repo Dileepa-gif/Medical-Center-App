@@ -1,5 +1,6 @@
 require("dotenv").config({ path: "./.env" });
 const express = require("express");
+const moment = require('moment-timezone');
 const connectDB = require("./config/db.config");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -10,7 +11,7 @@ const date = require("./utils/date");
 const socketIO = require("socket.io");
 const auth = require("./utils/auth");
 const Schedule = require("./utils/schedule");
-
+moment.tz.setDefault('Asia/Colombo');
 app.use(express.json());
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -34,16 +35,6 @@ const server = http.createServer(app);
 
 const io = socketIO(server);
 
-// const io = socketIO(server, {
-//   transports: ["polling"],
-//   cors: {
-//     cors: {
-//       origin: "",
-//       // origin: "http://localhost:3000",
-//       methods: ["GET", "POST"],
-//     },
-//   },
-// });
 
 io.on("connection", (socket) => {
     console.log(`User Connected: ${socket.id}`);
